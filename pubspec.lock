@@ -555,10 +555,12 @@ packages:
   packer:
     dependency: "direct main"
     description:
-      path: "../packer"
-      relative: true
-    source: path
-    version: "0.1.3"
+      path: "."
+      ref: HEAD
+      resolved-ref: "28187049169e38a46c6473851c48f40c1dcdced6"
+      url: "https://gitlab.com/hafijulali/packer"
+    source: git
+    version: "0.1.4"
   path:
     dependency: "direct main"
     description:
@@ -999,9 +1001,11 @@ packages:
   webexapis:
     dependency: "direct main"
     description:
-      path: "../webexapis"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "94284e043d528f329b45217668bdcb812edf0293"
+      url: "https://gitlab.com/hafijulali/webexapis"
+    source: git
     version: "0.0.1"
   win32:
     dependency: transitive

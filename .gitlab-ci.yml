@@ -30,7 +30,6 @@ pages:
       - public
   only:
     - master
-    - next
     - nightly
 
 android:
@@ -46,7 +45,6 @@ android:
       - build/app/outputs/flutter-apk/app-x86_64-release.apk
   only:
     - master
-    - next
     - nightly
 
 ios:
@@ -64,7 +62,6 @@ ios:
     expire_in: 1 week
   only:
     - master
-    - next
     - nightly
 
 linux:
@@ -78,7 +75,6 @@ linux:
       - build/linux/
   only:
     - master
-    - next
     - nightly
 
 windows:
@@ -95,7 +91,6 @@ windows:
       - build/windows/
   only:
     - master
-    - next
     - nightly
 
 macos:
@@ -113,5 +108,4 @@ macos:
       - build/macos/
   only:
     - master
-    - next
     - nightly

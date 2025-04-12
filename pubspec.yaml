@@ -15,10 +15,9 @@ dependencies:
   hive_ce_flutter: ^2.2.0
   keymap: ^0.0.92
   packer:
-    path: ../packer/
-    #git: https://gitlab.com/hafijulali/packer
+    git: https://gitlab.com/hafijulali/packer
   webexapis:
-    path: ../webexapis/
+    git: https://gitlab.com/hafijulali/webexapis
   path: ^1.8.3
   path_provider: ^2.1.1
   timezone: ^0.10.0
