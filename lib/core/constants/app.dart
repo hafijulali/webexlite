@@ -5,6 +5,7 @@ mixin AppConstants on BaseAppConstants {
   String appName = 'WebexLite';
   String roomsDatabaseFileName = 'rooms';
   String messagesDatabaseFileName = 'messages';
+  String blockDatabaseFileName = 'block';
   String secureDatabaseFileName = 'secure';
   String appCodebase = 'https://gitlab.com/hafijulali/webexlite';
 }

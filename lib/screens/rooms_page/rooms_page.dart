@@ -29,31 +29,48 @@ class RoomsPage extends StatelessWidget {
           }
 
           return PackerList(
-            items: snapshot.data?['items'],
-            itemBuilder: (room) => ListTile(
-              title: Text(
-                room['title'],
-                style: TextStyle(fontWeight: FontWeight.w800),
-              ),
-              onTap: () {
-                Constants().currentPageRoute = Constants().messagesPageRoute;
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        appBar: appBar(context),
-                        body: MessagesPage(
-                          roomId: room['id'],
-                        ),
-                        bottomNavigationBar: PackerNavBar(
-                            items: navBarsItems(),
-                            currentIndex: 2,
-                            onItemTapped: (_) => safePop(context)),
-                      ),
-                    ));
-              },
-            ),
-          );
+              items: snapshot.data?['items'],
+              itemBuilder: (room) {
+                if (blockDatabase != null) {
+                  if (blockDatabase!.containsKey(room['id'])) {
+                    return SizedBox.shrink();
+                  }
+                }
+                return ListTile(
+                  title: Text(
+                    room['title'],
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  onLongPress: () async {
+                    final result = await showAlertDialog(
+                        context,
+                        "Block ${room['title']}",
+                        "Do you want to block this chat?");
+                    if (result == Constants().ok) {
+                      blockDatabase?.put("${room['id']}", "");
+                      debugPrint("Blocked");
+                    }
+                  },
+                  onTap: () {
+                    Constants().currentPageRoute =
+                        Constants().messagesPageRoute;
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Scaffold(
+                            appBar: appBar(context),
+                            body: MessagesPage(
+                              roomId: room['id'],
+                            ),
+                            bottomNavigationBar: PackerNavBar(
+                                items: navBarsItems(),
+                                currentIndex: 2,
+                                onItemTapped: (_) => safePop(context)),
+                          ),
+                        ));
+                  },
+                );
+              });
         });
   }
 }

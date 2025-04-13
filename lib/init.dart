@@ -17,6 +17,7 @@ import 'screens/settings_page/settings_page.dart';
 Box<Map<String, dynamic>>? roomsDatabase;
 Box<Map<String, dynamic>>? messagesDatabase;
 Box<dynamic>? settingsDatabase;
+Box<dynamic>? blockDatabase;
 // WARN: This `secureDatabase` object is only for compatibility reasons.
 // As of 2025 there is no stable cross-paltform solution to securely store data.
 // Flutter Secure Storage doesn't work well on Web, which is a deal-breaker.
@@ -25,6 +26,7 @@ Box<dynamic>? secureDatabase;
 String? roomsDatabaseFilePath;
 String? messagesDatabaseFilePath;
 String? settingsDatabaseFilePath;
+String? blockDatabaseFilePath;
 Directory? databaseDirectory;
 WebexApis? webexApis;
 
@@ -91,6 +93,8 @@ Future<void> _initDatabase() async {
       Constants().messagesDatabaseFileName);
   settingsDatabase =
       await Hive.openBox<dynamic>(Constants().settingsDatabaseFileName);
+  blockDatabase =
+      await Hive.openBox<dynamic>(Constants().blockDatabaseFileName);
   roomsDatabaseFilePath = roomsDatabase!.path.toString();
   messagesDatabaseFilePath = messagesDatabase!.path.toString();
   settingsDatabaseFilePath = settingsDatabase!.path.toString();
