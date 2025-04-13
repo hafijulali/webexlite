@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:packer/utils/package_utils.dart';
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:webexlite/screens/settings_page/items_limit/items_limit.dart';
 
 import '../../../init.dart';
 import '../../core/constants/constants.dart';
@@ -12,6 +11,7 @@ import 'export_database/export_database.dart';
 import 'export_database/export_json.dart';
 import 'font_size/font_size.dart';
 import 'import_database/import_database.dart';
+import 'items_limit/items_limit.dart';
 import 'landing_page/landing_page.dart';
 
 class SettingsPage extends StatefulWidget {

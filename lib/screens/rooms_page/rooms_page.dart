@@ -1,39 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:packer/widgets/list.dart';
 import 'package:packer/widgets/wdigets.dart';
+import '../../custom/widgets/app_bar.dart';
+import '../messages_page/messages_page.dart';
 
 import '../../core/constants/constants.dart';
+import '../../custom/navigation/navigate.dart';
+import '../../custom/widgets/nav_bar.dart';
 import '../../init.dart';
 
 class RoomsPage extends StatelessWidget {
   const RoomsPage({super.key});
-  void _onRoomTap(BuildContext context, String roomId) async {
-    try {
-      final messages = (await webexApis?.getMessages(
-          roomId: roomId, max: maxItems))?['items'];
-      if (!context.mounted) return;
-      showModalBottomSheet(
-        context: context,
-        builder: (_) => ListView.builder(
-          itemCount: messages.length,
-          itemBuilder: (context, index) {
-            final msg = messages[index];
-            return ListTile(
-              title: Text(msg['text']),
-              subtitle: Text("${msg['personEmail']} ${msg['created']}"),
-            );
-          },
-        ),
-      );
-    } catch (e) {
-      debugPrint(e.toString());
-      PackerSnackBar(content: "Error loading messages");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     currentPath = Constants().roomsPageRoute;
+
     return FutureBuilder(
         future: webexApis?.getRooms(max: maxItems),
         builder: (context, snapshot) {
@@ -42,7 +24,7 @@ class RoomsPage extends StatelessWidget {
                 child: SizedBox(
                     width: 30, height: 30, child: CircularProgressIndicator()));
           } else if (snapshot.hasError) {
-            debugPrint("Error loading rooms");
+            PackerSnackBar(content: "Error loading rooms");
             return PackerSnackBar(content: "Error loading rooms");
           }
 
@@ -53,7 +35,23 @@ class RoomsPage extends StatelessWidget {
                 room['title'],
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
-              onTap: () => _onRoomTap(context, room['id']),
+              onTap: () {
+                Constants().currentPageRoute = Constants().messagesPageRoute;
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        appBar: appBar(context),
+                        body: MessagesPage(
+                          roomId: room['id'],
+                        ),
+                        bottomNavigationBar: PackerNavBar(
+                            items: navBarsItems(),
+                            currentIndex: 2,
+                            onItemTapped: (_) => safePop(context)),
+                      ),
+                    ));
+              },
             ),
           );
         });

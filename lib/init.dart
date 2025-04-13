@@ -10,6 +10,7 @@ import 'package:webexapis/webexapis.dart';
 import 'core/constants/constants.dart';
 import 'screens/home_page/home_page.dart';
 import 'screens/login_page/login_page.dart';
+import 'screens/messages_page/messages_page.dart';
 import 'screens/rooms_page/rooms_page.dart';
 import 'screens/settings_page/settings_page.dart';
 
@@ -58,7 +59,9 @@ Map<String, WidgetBuilder> routes = <String, WidgetBuilder>{
 Map<String, Widget> tabs = <String, Widget>{
   Constants().roomsPageRoute: const RoomsPage(),
   Constants().sendMessagePageRoute: const RoomsPage(),
-  Constants().messagesPageRoute: const RoomsPage(),
+  Constants().messagesPageRoute: const MessagesPage(
+    roomId: '',
+  ),
 };
 
 Future<void> initApp() async {
