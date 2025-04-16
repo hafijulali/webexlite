@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 Widget searchBar(
   BuildContext context,
   void Function() onEditingComplete,
-  TextEditingController searchTextController, [
+  TextEditingController searchTextController, {
   String hintText = 'Search',
-]) {
+}) {
   return Container(
     width: MediaQuery.of(context).size.width / 1.5,
     height: 50,

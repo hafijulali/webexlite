@@ -62,6 +62,7 @@ Map<String, Widget> tabs = <String, Widget>{
   Constants().roomsPageRoute: const RoomsPage(),
   Constants().sendMessagePageRoute: const RoomsPage(),
   Constants().messagesPageRoute: const MessagesPage(
+    roomTitle: '',
     roomId: '',
   ),
 };

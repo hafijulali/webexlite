@@ -53,13 +53,14 @@ class RoomsPage extends StatelessWidget {
                   },
                   onTap: () {
                     Constants().currentPageRoute =
-                        Constants().messagesPageRoute;
+                        "${Constants().messagesPageRoute} ${room['title']}";
                     Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
-                            appBar: appBar(context),
+                            appBar: appBar(context, hintText: room['title']),
                             body: MessagesPage(
+                              roomTitle: room['title'],
                               roomId: room['id'],
                             ),
                             bottomNavigationBar: PackerNavBar(

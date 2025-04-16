@@ -7,12 +7,15 @@ import '../../init.dart';
 
 class MessagesPage extends StatelessWidget {
   final String roomId;
+  final String roomTitle;
 
-  const MessagesPage({required this.roomId, super.key});
+  const MessagesPage(
+      {required this.roomId, required this.roomTitle, super.key});
 
   @override
   Widget build(BuildContext context) {
-    currentPath = Constants().messagesPageRoute;
+    Constants().currentPageRoute =
+        "${Constants().messagesPageRoute} $roomTitle";
 
     return FutureBuilder(
         future: webexApis?.getMessages(max: maxItems, roomId: roomId),
