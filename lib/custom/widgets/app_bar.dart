@@ -24,7 +24,9 @@ AppBar appBar(BuildContext context) {
 List<IconButton> _actions(BuildContext context) {
   return <IconButton>[
     IconButton(
-      onPressed: () async => {await showSnackbar('Refreshing')},
+      onPressed: () async {
+        await showSnackbar('Refreshing');
+      },
       icon: const Icon(Icons.refresh_outlined),
     ),
     IconButton(
