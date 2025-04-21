@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:packer/widgets/list.dart';
 import 'package:packer/widgets/wdigets.dart';
 
 import '../../core/constants/constants.dart';
@@ -20,14 +19,24 @@ class MessagesPage extends StatelessWidget {
     return FutureBuilder(
         future: webexApis?.getMessages(max: maxItems, roomId: roomId),
         builder: (context, snapshot) {
+          Widget? child;
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-                child: SizedBox(
-                    width: 30, height: 30, child: CircularProgressIndicator()));
+            child = SizedBox(
+                width: 30, height: 30, child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            PackerSnackBar(content: "Error loading messages");
-            return PackerSnackBar(content: "Error loading messages");
+            debugPrint(snapshot.error.toString());
+            child = Text(textAlign: TextAlign.center, "${snapshot.error}");
+          } else if (snapshot.data?['items'] == null) {
+            child = InkWell(
+                onTap: () => pageController.jumpToPage(0),
+                child: Text(
+                    textAlign: TextAlign.center,
+                    "${snapshot.data?['message']}\nClick here to open a room."));
           }
+          if (child != null) {
+            return Center(child: child);
+          }
+
           return PackerList(
             items: snapshot.data?['items'],
             itemBuilder: (message) => ListTile(

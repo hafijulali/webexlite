@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:packer/widgets/snack_bar.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../core/constants/constants.dart';
 import '../../../init.dart';
@@ -10,7 +10,7 @@ ListTile auth(BuildContext context) {
     leading: const Icon(Icons.security_outlined),
     title: const Text('API Key'),
     subtitle: InkWell(
-        onTap: () => launchUrl((Uri.parse(Constants().webexApiTokenUrl))),
+        onTap: () => launchUrlString(Constants().webexApiTokenUrl),
         child: const Text(
             'API key to authenticate with webex backend. Click here to get your token')),
     trailing: SizedBox(
