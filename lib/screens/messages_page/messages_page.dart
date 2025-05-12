@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:packer/widgets/wdigets.dart';
 
 import '../../core/constants/constants.dart';
@@ -40,6 +41,13 @@ class MessagesPage extends StatelessWidget {
           return PackerList(
             items: snapshot.data?['items'],
             itemBuilder: (message) => ListTile(
+                onLongPress: () async {
+                  await Clipboard.setData(
+                      ClipboardData(text: "${message['text']}"));
+                  showSnackbar(
+                    'Copied to clipboard',
+                  );
+                },
                 subtitle:
                     Text("${message['personEmail']} ${message['created']}"),
                 title: Text(
