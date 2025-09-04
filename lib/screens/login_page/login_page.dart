@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:packer/navigation/navigate.dart';
 import 'package:packer/widgets/snack_bar.dart';
 
 import '../../core/constants/constants.dart';
 
 // INFO : Login feature requires API key to be stored in the code.
 // As of 2025 flutter doesnt have a secure way to store obfuscated API keys.
-// Thus, [LoginPage] would not be helpful for Flutter Web.
 
 class LoginPage extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
@@ -42,9 +42,11 @@ class LoginPage extends StatelessWidget {
 
   ElevatedButton _cancel(BuildContext context) {
     return ElevatedButton(
-      child: const Text('CLEAR'),
+      child: const Text('SKIP'),
       onPressed: () async {
         usernameController.text = passwordController.text = '';
+        safePushNamed(
+            context, Constants().loginPageRoute, Constants().homePageRoute);
       },
     );
   }
@@ -64,7 +66,6 @@ class LoginPage extends StatelessWidget {
 
   List<Widget> _inputButtons(BuildContext context) {
     return <Widget>[
-      // TODO : Backend needs to have roboust logic for signup, thus disabling for now
       false ? _action(context, 'SIGNUP') : _action(context, 'SIGNIN'),
       const SizedBox(
         width: 16,

@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    if (apiKey == null || apiKey!.isEmpty) {
+    if (accessToken == null || accessToken!.isEmpty) {
       PackerSnackBar(content: Constants().apiKeyNotSet).show();
     } else {}
   }

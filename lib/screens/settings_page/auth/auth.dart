@@ -27,7 +27,7 @@ ListTile auth(BuildContext context) {
           }
         },
         decoration: InputDecoration(
-          hintText: (apiKey != null) ? '*********' : '',
+          hintText: (accessToken != null) ? '*********' : '',
           border: OutlineInputBorder(),
         ),
         controller: apiKeyTextController,

@@ -1,10 +1,11 @@
 name: webexlite
-version: 0.0.6
+version: 0.0.7
 publish_to: none
 environment:
   sdk: ">=3.1.3 <4.0.0"
 description: Reimplimentation of webex app in flutter, designed for performance
 dependencies:
+  flutter_dotenv: ^6.0.0
   archive: ^4.0.2
   cupertino_icons: ^1.0.2
   dio: ^5.8.0+1
@@ -26,11 +27,13 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.4.15
   flutter_launcher_icons: ^0.14.2
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
   hive_ce_generator: ^1.8.1
-  lints: ^5.0.0
+  lints: ^6.0.0
   pubspec_dependency_sorter: ^1.0.3
 flutter:
   uses-material-design: true
+  assets:
+    - .env

@@ -24,7 +24,7 @@ Future<dynamic> _import(BuildContext context) async {
   try {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
-        checkAndroidStoragePermissions(context);
+        checkStoragePermissions(context);
       }
       String? importFilePath;
       FilePickerResult? result = await FilePicker.platform.pickFiles();

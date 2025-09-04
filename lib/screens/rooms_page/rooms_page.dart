@@ -52,6 +52,8 @@ class RoomsPage extends StatelessWidget {
                         title: Text(
                           room['title'],
                           style: TextStyle(fontWeight: FontWeight.w800),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         onLongPress: () async {
                           final result = await showAlertDialog(

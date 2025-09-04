@@ -26,7 +26,7 @@ Future<dynamic> _export(BuildContext context) async {
   try {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
-        checkAndroidStoragePermissions(context);
+        checkStoragePermissions(context);
       }
       String? exportDirectory = await FilePicker.platform.getDirectoryPath();
       if (exportDirectory == null) {
