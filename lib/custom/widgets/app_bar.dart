@@ -6,7 +6,7 @@ import '../../core/constants/constants.dart';
 import '../navigation/navigate.dart';
 import 'search_bar.dart';
 
-AppBar appBar(BuildContext context, {String? hintText}) {
+AppBar appBar(BuildContext context, {String? hintText, VoidCallback? onRefresh}) {
   return AppBar(
     title: Center(
         child: searchBar(context, () {
@@ -19,16 +19,14 @@ AppBar appBar(BuildContext context, {String? hintText}) {
         safePop(context);
       },
     ),
-    actions: actions(context),
+    actions: actions(context, onRefresh: onRefresh),
   );
 }
 
-List<IconButton> actions(BuildContext context) {
+List<IconButton> actions(BuildContext context, {VoidCallback? onRefresh}) {
   return <IconButton>[
     IconButton(
-      onPressed: () async {
-        await showSnackbar('Refreshing');
-      },
+      onPressed: onRefresh,
       icon: const Icon(Icons.refresh_outlined),
     ),
     IconButton(

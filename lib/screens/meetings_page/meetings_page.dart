@@ -1,53 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:packer/widgets/wdigets.dart';
 
 import '../../core/constants/constants.dart';
 import '../../init.dart';
+import 'bloc/meetings_bloc.dart';
+import 'bloc/meetings_event.dart';
+import 'bloc/meetings_state.dart';
 
-class MeetingsPage extends StatelessWidget {
+class MeetingsPage extends StatefulWidget {
   const MeetingsPage({super.key});
+
+  @override
+  State<MeetingsPage> createState() => _MeetingsPageState();
+}
+
+class _MeetingsPageState extends State<MeetingsPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<MeetingsBloc>().add(LoadMeetings());
+  }
 
   @override
   Widget build(BuildContext context) {
     Constants().currentPageRoute = Constants().meetingsPageRoute;
-    return FutureBuilder(
-        future: webexApis?.getMeetings(),
-        builder: (context, snapshot) {
-          Widget? child;
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            child = SizedBox(
-                width: 30, height: 30, child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            debugPrint(snapshot.error.toString());
-            child = Text(textAlign: TextAlign.center, "${snapshot.error}");
-          } else if (snapshot.data?['items'] == null) {
-            child = InkWell(
+    return BlocBuilder<MeetingsBloc, MeetingsState>(
+      builder: (context, state) {
+        if (state is MeetingsLoading || state is MeetingsInitial) {
+          return const Center(child: SizedBox(
+              width: 30, height: 30, child: CircularProgressIndicator()));
+        } else if (state is MeetingsError) {
+          return Center(child: Text(textAlign: TextAlign.center, state.error));
+        } else if (state is MeetingsLoaded) {
+          if (state.meetings.isEmpty) {
+            return Center(
+              child: InkWell(
                 onTap: () => pageController.jumpToPage(0),
-                child: Text(
+                child: const Text(
                     textAlign: TextAlign.center,
-                    "${snapshot.data?['message']}\nClick here to open a room."));
+                    "No meetings found.\nClick here to open a room."),
+              ),
+            );
           }
-          if (child != null) {
-            return Center(child: child);
-          }
-
           return PackerList(
-            items: snapshot.data?['items'],
-            itemBuilder: <Meeting>(meeting) => ListTile(
-                onLongPress: () async {
-                  await Clipboard.setData(
-                      ClipboardData(text: "${meeting['title']}"));
-                  showSnackbar(
-                    'Copied to clipboard',
-                  );
-                },
-                subtitle: Text("${meeting['start']} - ${meeting['end']}"),
-                title: Text(
-                  meeting['title'],
-                )),
-            //onTap: () => _onRoomTap(context, room['id']),
+            items: state.meetings,
+            itemBuilder: (meeting) => ListTile(
+              onLongPress: () async {
+                await Clipboard.setData(
+                    ClipboardData(text: "${meeting['title']}"));
+                showSnackbar(
+                  'Copied to clipboard',
+                );
+              },
+              subtitle: Text("${meeting['start']} - ${meeting['end']}"),
+              title: Text(
+                meeting['title'],
+              ),
+            ),
           );
-        });
+        }
+        return Container();
+      },
+    );
   }
 }

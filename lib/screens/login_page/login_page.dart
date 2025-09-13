@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:packer/navigation/navigate.dart';
-import 'package:packer/widgets/snack_bar.dart';
+
 
 import '../../core/constants/constants.dart';
 
@@ -15,9 +15,6 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint("Building LoginPage");
-    if (false) {
-      _showFirstLoginMessageSnackBar();
-    }
     return Scaffold(
         appBar: AppBar(
           title: Text(Constants().appName),
@@ -35,9 +32,7 @@ class LoginPage extends StatelessWidget {
     return ElevatedButton(
         onPressed: () async {
           debugPrint("LoginPage: action pressed - $text");
-          false
-              ? await _saveSignupCredentials()
-              : await _verifySigninCredentials();
+          await _verifySigninCredentials();
         },
         child: Text(text));
   }
@@ -69,7 +64,7 @@ class LoginPage extends StatelessWidget {
 
   List<Widget> _inputButtons(BuildContext context) {
     return <Widget>[
-      false ? _action(context, 'SIGNUP') : _action(context, 'SIGNIN'),
+      _action(context, 'SIGNIN'),
       const SizedBox(
         width: 16,
       ),
@@ -102,15 +97,9 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Future<dynamic> _saveSignupCredentials() async {
-    debugPrint("LoginPage: saving signup credentials");
-    // WARN : See above todo comment
-    return;
-  }
+  
 
-  Future<void> _showFirstLoginMessageSnackBar() async {
-    await showSnackbar('First login');
-  }
+  
 
   TextFormField _usernameField() {
     return TextFormField(
