@@ -14,6 +14,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Building LoginPage");
     if (false) {
       _showFirstLoginMessageSnackBar();
     }
@@ -33,6 +34,7 @@ class LoginPage extends StatelessWidget {
   Widget _action(BuildContext context, String text) {
     return ElevatedButton(
         onPressed: () async {
+          debugPrint("LoginPage: action pressed - $text");
           false
               ? await _saveSignupCredentials()
               : await _verifySigninCredentials();
@@ -44,6 +46,7 @@ class LoginPage extends StatelessWidget {
     return ElevatedButton(
       child: const Text('SKIP'),
       onPressed: () async {
+        debugPrint("LoginPage: skip pressed");
         usernameController.text = passwordController.text = '';
         safePushNamed(
             context, Constants().loginPageRoute, Constants().homePageRoute);
@@ -100,6 +103,7 @@ class LoginPage extends StatelessWidget {
   }
 
   Future<dynamic> _saveSignupCredentials() async {
+    debugPrint("LoginPage: saving signup credentials");
     // WARN : See above todo comment
     return;
   }
@@ -121,6 +125,7 @@ class LoginPage extends StatelessWidget {
   }
 
   Future<dynamic> _verifySigninCredentials() async {
+    debugPrint("LoginPage: verifying signin credentials");
     // WARN: See above todo comment
     return;
   }

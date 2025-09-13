@@ -14,12 +14,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/constants/constants.dart';
 import 'screens/home_page/home_page.dart';
 import 'screens/login_page/login_page.dart';
+import 'screens/meetings_page/meetings_page.dart';
 import 'screens/messages_page/messages_page.dart';
 import 'screens/rooms_page/rooms_page.dart';
 import 'screens/settings_page/settings_page.dart';
 
 Box? roomsDatabase;
 Box? messagesDatabase;
+Box? personDatabase;
 Box<dynamic>? settingsDatabase;
 Box<dynamic>? blockDatabase;
 // WARN: This `secureDatabase` object is only for compatibility reasons.
@@ -69,7 +71,9 @@ String databaseFilePath = BaseConstants().appName;
 
 Map<String, WidgetBuilder> routes = <String, WidgetBuilder>{
   Constants().roomsPageRoute: (_) => const RoomsPage(),
-  Constants().messagesPageRoute: (_) => const RoomsPage(),
+  Constants().messagesPageRoute: (_) =>
+      const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
+  Constants().meetingsPageRoute: (_) => const MeetingsPage(),
   Constants().homePageRoute: (_) => const HomePage(),
   Constants().settingsPageRoute: (_) => const SettingsPage(),
   Constants().loginPageRoute: (_) => LoginPage(),
@@ -77,8 +81,9 @@ Map<String, WidgetBuilder> routes = <String, WidgetBuilder>{
 
 Map<String, Widget> tabs = <String, Widget>{
   Constants().roomsPageRoute: const RoomsPage(),
-  Constants().sendMessagePageRoute: const RoomsPage(),
-  Constants().messagesPageRoute: const MessagesPage(roomTitle: '', roomId: ''),
+  Constants().sendMessagePageRoute:
+      const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
+  Constants().meetingsPageRoute: const MeetingsPage()
 };
 
 Future<void> initApp() async {
@@ -92,6 +97,8 @@ Future<void> _initCloud() async {}
 
 Future<void> _initServices() async {
   WidgetsFlutterBinding.ensureInitialized();
+  accessToken ??= dotenv.env['ACCESS_TOKEN'];
+  settingsDatabase?.put(Constants().tokenSettingsKey, accessToken);
   webexApis = WebexApis(
     token: Token(
       accessToken: dotenv.env['ACCESS_TOKEN']!,

@@ -4,7 +4,7 @@ import '../../../core/constants/constants.dart';
 import '../../../init.dart';
 
 List<DropdownMenuEntry> _dropdownMenuEntries() {
-  final List<dynamic> font = List.generate(50, (index) => index += 5);
+  final List<dynamic> font = List.generate(100, (index) => index += 10);
   final List<DropdownMenuEntry> menuItems = List.empty(growable: true);
   for (final int element in font) {
     menuItems.add(
@@ -28,6 +28,7 @@ ListTile maxItemsLimit(BuildContext context) {
         hintText: maxItems.toString(),
         dropdownMenuEntries: _dropdownMenuEntries(),
         onSelected: (value) {
+          debugPrint("Settings: max items limit changed to $value");
           maxItems = value;
           settingsDatabase!.put(Constants().maxItemsSettingsKey, value);
         },

@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:packer/widgets/wdigets.dart';
+import 'package:webexapis/routes/messages/model.dart';
+import 'package:webexlite/custom/widgets/overlay.dart';
 
 import '../../core/constants/constants.dart';
+import '../../custom/navigation/navigate.dart';
 import '../../init.dart';
 
 class MessagesPage extends StatelessWidget {
   final String roomId;
   final String roomTitle;
+  final String roomType;
 
-  const MessagesPage(
-      {required this.roomId, required this.roomTitle, super.key});
+  const MessagesPage({
+    required this.roomId,
+    required this.roomTitle,
+    required this.roomType,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     Constants().currentPageRoute =
         "${Constants().messagesPageRoute} $roomTitle";
 
-    return FutureBuilder(
+    debugPrint("Building room: $roomTitle roomType: $roomType roomId: $roomId");
+
+    return FutureBuilder<Map<String, dynamic>>(
         future: webexApis?.getMessages(max: maxItems, roomId: roomId),
         builder: (context, snapshot) {
           Widget? child;
@@ -29,7 +39,7 @@ class MessagesPage extends StatelessWidget {
             child = Text(textAlign: TextAlign.center, "${snapshot.error}");
           } else if (snapshot.data?['items'] == null) {
             child = InkWell(
-                onTap: () => pageController.jumpToPage(0),
+                onTap: () => safePop(context),
                 child: Text(
                     textAlign: TextAlign.center,
                     "${snapshot.data?['message']}\nClick here to open a room."));
@@ -37,24 +47,32 @@ class MessagesPage extends StatelessWidget {
           if (child != null) {
             return Center(child: child);
           }
+          debugPrint('message data: ${snapshot.data?['items']}');
 
-          return PackerList(
+          return PackerList<Message>.lazy(
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            parser: (json) => Message.fromJson(json),
             items: snapshot.data?['items'],
-            itemBuilder: (message) => ListTile(
+            itemBuilder: (Message message) => ListTile(
+                onTap: () => showImages(context, message.files!.first),
                 onLongPress: () async {
                   await Clipboard.setData(
-                      ClipboardData(text: "${message['text']}"));
+                      ClipboardData(text: message.text ?? "-"));
                   showSnackbar(
                     'Copied to clipboard',
                   );
                 },
-                subtitle:
-                    Text("${message['personEmail']} ${message['created']}"),
+                subtitle: Text(
+                    "${message.personEmail ?? message.id} - ${message.created}"),
                 title: Text(
-                  message['text'],
+                  message.text == "" ? message.files!.join(" ") : message.text!,
                 )),
             //onTap: () => _onRoomTap(context, room['id']),
           );
         });
   }
+}
+
+void showImages(BuildContext context, String url) {
+  openOverlay(context, url);
 }

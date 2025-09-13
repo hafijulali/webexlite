@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:packer/utils/package_utils.dart';
+import 'package:packer/widgets/app_bar.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../init.dart';
@@ -27,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Use Material 3'),
       value: useMaterial3,
       onChanged: (bool value) {
+        debugPrint("SettingsPage: toggling Material3 to $value");
         setState(() {
           settingsDatabase!.put(Constants().material3SettingsKey, value);
           useMaterial3 = value;
@@ -62,6 +64,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Show subtitle in list items'),
       value: showSubtitle,
       onChanged: (bool value) {
+        debugPrint("SettingsPage: toggling showSubtitle to $value");
         setState(() {
           showSubtitle = value;
           settingsDatabase?.put(Constants().showSubtitleKey, value);
@@ -102,7 +105,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget settingsPage(BuildContext context) {
     return Scaffold(
-      appBar: appBar(context),
+      appBar: PackerAppBar(
+        actions: actions(context),
+        center: Text(Constants().settingsPageRoute.substring(1)),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(children: _widgetsTiles(context)),
@@ -114,13 +120,17 @@ class _SettingsPageState extends State<SettingsPage> {
     return ListTile(
       leading: const Icon(Icons.mobile_friendly_outlined),
       title: Text('App Version : $appVersion'),
-      onTap: () async => await launchUrlString(Constants().appCodebase),
+      onTap: () async {
+        debugPrint("SettingsPage: opening app codebase url");
+        await launchUrlString(Constants().appCodebase);
+      },
     );
   }
 
   @override
   void initState() {
     super.initState();
+    debugPrint("SettingsPage: initState");
     getAppVersion()
         .then((String version) => setState(() => appVersion = version));
   }
@@ -128,6 +138,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     currentPath = Constants().settingsPageRoute;
+    debugPrint("Building SettingsPage");
     return settingsPage(context);
   }
 }

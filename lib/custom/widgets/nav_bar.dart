@@ -28,8 +28,8 @@ List<Map<String, Icon>> navBarsItems() {
     },
     editOrAddButton,
     {
-      Constants().messages: Icon(
-        Icons.message_outlined,
+      Constants().meetings: Icon(
+        Icons.meeting_room_outlined,
         color: Colors.blueAccent,
       ),
     }

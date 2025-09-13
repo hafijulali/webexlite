@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:packer/widgets/wdigets.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:webexapis/routes/rooms/model.dart';
 
 import '../../core/constants/constants.dart';
-import '../../custom/navigation/navigate.dart';
 import '../../custom/widgets/app_bar.dart';
-import '../../custom/widgets/nav_bar.dart';
 import '../../init.dart';
 import '../messages_page/messages_page.dart';
 
@@ -17,7 +16,7 @@ class RoomsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     currentPath = Constants().roomsPageRoute;
 
-    return FutureBuilder<Map>(
+    return FutureBuilder<Map<String, dynamic>>(
         future: webexApis?.getRooms(max: maxItems),
         builder: (context, snapshot) {
           Widget? child;
@@ -40,17 +39,22 @@ class RoomsPage extends StatelessWidget {
           return ValueListenableBuilder(
               valueListenable: settingsDatabase!.listenable(),
               builder: (context, _, __) {
+                final items = (snapshot.data?['items'] as List?)
+                        ?.map((e) => Room.fromJson(e as Map<String, dynamic>))
+                        .toList() ??
+                    [];
+
                 return PackerList(
-                    items: snapshot.data?['items'],
-                    itemBuilder: (room) {
+                    items: items,
+                    itemBuilder: (Room room) {
                       if (blockDatabase != null) {
-                        if (blockDatabase!.containsKey(room['id'])) {
+                        if (blockDatabase!.containsKey(room.id)) {
                           return SizedBox.shrink();
                         }
                       }
                       return ListTile(
                         title: Text(
-                          room['title'],
+                          room.title,
                           style: TextStyle(fontWeight: FontWeight.w800),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -58,30 +62,26 @@ class RoomsPage extends StatelessWidget {
                         onLongPress: () async {
                           final result = await showAlertDialog(
                               context,
-                              "Block ${room['title']}",
+                              "Block ${room.title}",
                               "Do you want to block this chat?");
                           if (result == Constants().ok) {
-                            blockDatabase?.put("${room['id']}", "");
+                            blockDatabase?.put(room.id, "");
                             debugPrint("Blocked");
                           }
                         },
                         onTap: () {
                           Constants().currentPageRoute =
-                              "${Constants().messagesPageRoute} ${room['title']}";
+                              "${Constants().messagesPageRoute} ${room.title}";
                           Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => Scaffold(
-                                  appBar:
-                                      appBar(context, hintText: room['title']),
+                                  appBar: appBar(context, hintText: room.title),
                                   body: MessagesPage(
-                                    roomTitle: room['title'],
-                                    roomId: room['id'],
+                                    roomTitle: room.title,
+                                    roomId: room.id,
+                                    roomType: room.type,
                                   ),
-                                  bottomNavigationBar: PackerNavBar(
-                                      items: navBarsItems(),
-                                      currentIndex: 2,
-                                      onItemTapped: (_) => safePop(context)),
                                 ),
                               ));
                         },

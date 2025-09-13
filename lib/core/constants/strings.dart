@@ -5,4 +5,5 @@ mixin StringConstants on BaseStringConstants {
   String editMessage = 'Edit Message';
   String rooms = 'Rooms';
   String messages = 'Messages';
+  String meetings = 'Meetings';
 }

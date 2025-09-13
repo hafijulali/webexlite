@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    debugPrint("HomePage: initState");
     if (accessToken == null || accessToken!.isEmpty) {
       PackerSnackBar(content: Constants().apiKeyNotSet).show();
     } else {}
@@ -32,6 +33,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    debugPrint("HomePage: dispose");
     pageController.dispose();
     super.dispose();
   }
@@ -42,16 +44,19 @@ class _HomePageState extends State<HomePage> {
       currentPath = routes.keys.toList().elementAt(currentPageIndex);
       pageController.jumpToPage(currentPageIndex);
     });
+    debugPrint("HomePage: bottom nav tapped, index: $gotoIndex $currentPath");
   }
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Building HomePage");
     return Scaffold(
       appBar: appBar(context),
       body: PageView(
         controller: pageController,
         children: tabs.values.toList(),
         onPageChanged: (value) {
+          debugPrint("HomePage: page changed to $value");
           setState(() {
             currentPageIndex = value;
             currentPath = routes.keys.toList().elementAt(currentPageIndex);

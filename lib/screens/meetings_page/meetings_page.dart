@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:packer/widgets/wdigets.dart';
+
+import '../../core/constants/constants.dart';
+import '../../init.dart';
+
+class MeetingsPage extends StatelessWidget {
+  const MeetingsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Constants().currentPageRoute = Constants().meetingsPageRoute;
+    return FutureBuilder(
+        future: webexApis?.getMeetings(),
+        builder: (context, snapshot) {
+          Widget? child;
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            child = SizedBox(
+                width: 30, height: 30, child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            debugPrint(snapshot.error.toString());
+            child = Text(textAlign: TextAlign.center, "${snapshot.error}");
+          } else if (snapshot.data?['items'] == null) {
+            child = InkWell(
+                onTap: () => pageController.jumpToPage(0),
+                child: Text(
+                    textAlign: TextAlign.center,
+                    "${snapshot.data?['message']}\nClick here to open a room."));
+          }
+          if (child != null) {
+            return Center(child: child);
+          }
+
+          return PackerList(
+            items: snapshot.data?['items'],
+            itemBuilder: <Meeting>(meeting) => ListTile(
+                onLongPress: () async {
+                  await Clipboard.setData(
+                      ClipboardData(text: "${meeting['title']}"));
+                  showSnackbar(
+                    'Copied to clipboard',
+                  );
+                },
+                subtitle: Text("${meeting['start']} - ${meeting['end']}"),
+                title: Text(
+                  meeting['title'],
+                )),
+            //onTap: () => _onRoomTap(context, room['id']),
+          );
+        });
+  }
+}

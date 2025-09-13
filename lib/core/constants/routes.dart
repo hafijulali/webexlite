@@ -4,6 +4,7 @@ mixin RouteConstants on BaseRouteConstants {
   String sendMessagePageRoute = '/SendMessagePage';
   String roomsPageRoute = '/RoomsPage';
   String messagesPageRoute = '/MessagesPage';
+  String meetingsPageRoute = '/MeetingsPage';
   String editMessagePageRpute = '/EditMessagePage';
   @override
   String currentPageRoute = BaseRouteConstants().homePageRoute;

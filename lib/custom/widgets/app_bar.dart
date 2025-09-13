@@ -19,11 +19,11 @@ AppBar appBar(BuildContext context, {String? hintText}) {
         safePop(context);
       },
     ),
-    actions: _actions(context),
+    actions: actions(context),
   );
 }
 
-List<IconButton> _actions(BuildContext context) {
+List<IconButton> actions(BuildContext context) {
   return <IconButton>[
     IconButton(
       onPressed: () async {

@@ -21,6 +21,7 @@ ListTile importDatabase(BuildContext context) {
 }
 
 Future<dynamic> _import(BuildContext context) async {
+  debugPrint("Settings: importing database");
   try {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
@@ -32,8 +33,11 @@ Future<dynamic> _import(BuildContext context) async {
       if (result == null) {
         importFilePath =
             '${(await getApplicationDocumentsDirectory()).path}/${Constants().appName}Export.zip';
+        debugPrint(
+            "Settings: no file picked, using default import path: $importFilePath");
       } else {
         importFilePath = result.files.single.path;
+        debugPrint("Settings: importing from: $importFilePath");
       }
 
       final Uint8List databaseBundleZip =
@@ -59,6 +63,7 @@ Future<dynamic> _import(BuildContext context) async {
     }
   } on Exception catch (e) {
     if (!context.mounted) return null;
+    debugPrint("Settings: database import failed, error: $e");
     await showAlertDialog(context, 'Database Import Failed !!!', 'Error: $e');
   }
 }
