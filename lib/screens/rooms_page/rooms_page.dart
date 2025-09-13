@@ -82,13 +82,10 @@ class _RoomsPageState extends State<RoomsPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Scaffold(
-                            appBar: appBar(context, hintText: room.title),
-                            body: MessagesPage(
-                              roomTitle: room.title,
-                              roomId: room.id,
-                              roomType: room.type,
-                            ),
+                          builder: (context) => MessagesPage(
+                            roomTitle: room.title,
+                            roomId: room.id,
+                            roomType: room.type,
                           ),
                         ),
                       );
