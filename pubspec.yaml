@@ -25,10 +25,14 @@ dependencies:
   path_provider: ^2.1.5
   timezone: ^0.10.1
   url_launcher: ^6.3.2
+  app_links: ^3.5.0
+  pkce: ^1.1.0
   uuid: ^4.5.1
   webexapis:
-    path: ../webexapis
-    #git: https://gitlab.com/hafijulali/webexapis
+    path:
+      ../webexapis
+      #url: https://gitlab.com/hafijulali/webexapis
+      #ref: v0.0.4
 dev_dependencies:
   build_runner: ^2.8.0
   flutter_launcher_icons: ^0.14.4
@@ -42,3 +46,20 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+flutter_launcher_icons:
+  android: launcher_icon
+  ios: true
+  image_path: assets/icons/app_icon.png
+  min_sdk_android: 16
+  web:
+    generate: true
+    image_path: web/favicon.png
+    background_color: "#000000"
+    theme_color: "#fffff"
+  windows:
+    generate: true
+    image_path: assets/icons/app_icon.png
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: assets/icons/app_icon.png

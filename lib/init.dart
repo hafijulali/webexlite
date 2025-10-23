@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:packer/core/constants/constants.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,18 +10,17 @@ import 'package:timezone/data/latest_all.dart' as tz_latest;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:webexapis/core/apicontract.dart';
 import 'package:webexapis/webexapis.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/constants/constants.dart';
 import 'screens/home_page/home_page.dart';
 import 'screens/login_page/login_page.dart';
-import 'screens/meetings_page/meetings_page.dart';
 import 'screens/messages_page/messages_page.dart';
 import 'screens/rooms_page/rooms_page.dart';
 import 'screens/settings_page/settings_page.dart';
 
 Box? roomsDatabase;
 Box? messagesDatabase;
+Box? meetingsDatabase;
 Box? personDatabase;
 Box<dynamic>? settingsDatabase;
 Box<dynamic>? blockDatabase;
@@ -31,10 +31,12 @@ Box<dynamic>? blockDatabase;
 Box<dynamic>? secureDatabase;
 String? roomsDatabaseFilePath;
 String? messagesDatabaseFilePath;
+String? meetingsDatabaseFilePath;
 String? settingsDatabaseFilePath;
 String? blockDatabaseFilePath;
 Directory? databaseDirectory;
 WebexApis? webexApis;
+Token? token;
 
 TextEditingController searchTextController = TextEditingController();
 TextEditingController apiKeyTextController = TextEditingController();
@@ -49,7 +51,6 @@ int currentPageIndex = settingsDatabase?.get(
 );
 String currentPath = Constants().currentPageRoute;
 String appVersion = '';
-PageController pageController = PageController(initialPage: currentPageIndex);
 String appThemeMode = settingsDatabase?.get(
   Constants().appThemeSettingsKey,
   defaultValue: Constants().systemTheme,
@@ -66,54 +67,23 @@ int maxItems = settingsDatabase?.get(
   Constants().maxItemsSettingsKey,
   defaultValue: 20,
 );
-String? accessToken = settingsDatabase?.get(Constants().tokenSettingsKey);
+String? accessToken; // This will be populated from the token object
 String databaseFilePath = BaseConstants().appName;
 
 Map<String, WidgetBuilder> routes = <String, WidgetBuilder>{
   Constants().roomsPageRoute: (_) => const RoomsPage(),
   Constants().messagesPageRoute: (_) =>
       const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
-  Constants().meetingsPageRoute: (_) => const MeetingsPage(),
   Constants().homePageRoute: (_) => const HomePage(),
   Constants().settingsPageRoute: (_) => const SettingsPage(),
   Constants().loginPageRoute: (_) => LoginPage(),
 };
 
-Map<String, Widget> tabs = <String, Widget>{
-  Constants().roomsPageRoute: const RoomsPage(),
-  Constants().sendMessagePageRoute:
+Map<String, WidgetBuilder> tabs = <String, WidgetBuilder>{
+  Constants().roomsPageRoute: (_) => const RoomsPage(),
+  Constants().sendMessagePageRoute: (_) =>
       const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
-  Constants().meetingsPageRoute: const MeetingsPage()
 };
-
-Future<void> initApp() async {
-  await dotenv.load(fileName: ".env");
-  await _initServices();
-  await _initDatabase();
-  await _initCloud();
-}
-
-Future<void> _initCloud() async {}
-
-Future<void> _initServices() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  accessToken ??= dotenv.env['ACCESS_TOKEN'];
-  settingsDatabase?.put(Constants().tokenSettingsKey, accessToken);
-  webexApis = WebexApis(
-    token: Token(
-      accessToken: dotenv.env['ACCESS_TOKEN']!,
-      refreshToken: dotenv.env['REFRESH_TOKEN']!,
-      expiresIn: DateTime.fromMillisecondsSinceEpoch(7775999),
-    ),
-    clientId: dotenv.env['CLIENT_ID']!,
-    clientSecret: dotenv.env['CLIENT_SECRET']!,
-  );
-
-  if (!kIsWeb) {
-    tz_latest.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
-  }
-}
 
 Future<void> _initDatabase() async {
   databaseFilePath = kReleaseMode
@@ -121,20 +91,101 @@ Future<void> _initDatabase() async {
       : (await getTemporaryDirectory()).path;
   Hive.init(databaseFilePath);
 
-  roomsDatabase = await Hive.openBox<dynamic>(
-    Constants().roomsDatabaseFileName,
-  );
-  messagesDatabase = await Hive.openBox(Constants().messagesDatabaseFileName);
-  settingsDatabase = await Hive.openBox<dynamic>(
-    Constants().settingsDatabaseFileName,
-  );
-  blockDatabase = await Hive.openBox<dynamic>(
-    Constants().blockDatabaseFileName,
-  );
-  roomsDatabaseFilePath = roomsDatabase!.path.toString();
-  messagesDatabaseFilePath = messagesDatabase!.path.toString();
-  settingsDatabaseFilePath = settingsDatabase!.path.toString();
+  try {
+    roomsDatabase = await Hive.openBox<dynamic>(
+      Constants().roomsDatabaseFileName,
+    );
+  } catch (e) {
+    debugPrint('Error opening roomsDatabase: $e');
+    roomsDatabase = null;
+  }
+
+  try {
+    messagesDatabase = await Hive.openBox(Constants().messagesDatabaseFileName);
+  } catch (e) {
+    debugPrint('Error opening messagesDatabase: $e');
+    messagesDatabase = null;
+  }
+
+  try {
+    meetingsDatabase = await Hive.openBox(Constants().meetingsDatabaseFileName);
+  } catch (e) {
+    debugPrint('Error opening meetingsDatabase: $e');
+    meetingsDatabase = null;
+  }
+
+  try {
+    settingsDatabase = await Hive.openBox<dynamic>(
+      Constants().settingsDatabaseFileName,
+    );
+  } catch (e) {
+    debugPrint('Error opening settingsDatabase: $e');
+    settingsDatabase = null;
+  }
+
+  try {
+    blockDatabase = await Hive.openBox<dynamic>(
+      Constants().blockDatabaseFileName,
+    );
+  } catch (e) {
+    debugPrint('Error opening blockDatabase: $e');
+    blockDatabase = null;
+  }
+
+  roomsDatabaseFilePath = roomsDatabase?.path.toString();
+  messagesDatabaseFilePath = messagesDatabase?.path.toString();
+  meetingsDatabaseFilePath = meetingsDatabase?.path.toString();
+  settingsDatabaseFilePath = settingsDatabase?.path.toString();
   if (!kIsWeb) {
     databaseDirectory = Directory(roomsDatabaseFilePath!).parent;
+  }
+}
+
+Future<void> initApp() async {
+  print("initApp: start");
+  await dotenv.load(fileName: ".env");
+  print("initApp: dotenv loaded");
+  await _initDatabase(); // Call _initDatabase first
+  print("initApp: database initialized");
+  await _initServices();
+  print("initApp: services initialized");
+  await _initCloud();
+  print("initApp: cloud initialized");
+}
+
+Future<void> _initCloud() async {}
+
+Future<void> _initServices() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final storedToken = settingsDatabase?.get(Constants().tokenSettingsKey);
+  debugPrint('storedToken: $storedToken');
+  if (storedToken != null) {
+    try {
+      token = Token.fromStorage(Map<String, dynamic>.from(storedToken));
+      accessToken = token!.accessToken; // Initialize accessToken here
+    } catch (e) {
+      debugPrint("Failed to load token from storage: $e");
+      await settingsDatabase?.delete(Constants().tokenSettingsKey);
+    }
+  }
+
+  if (token != null) {
+    webexApis = WebexApis(
+        token: token,
+        clientId: dotenv.env['CLIENT_ID']!,
+        clientSecret: dotenv.env['CLIENT_SECRET']!,
+        onTokenRefreshed: (newToken) async {
+          token = newToken;
+          accessToken = newToken.accessToken;
+          await settingsDatabase?.put(
+              Constants().tokenSettingsKey, newToken.toJson());
+        });
+  }
+  debugPrint("webexApis is null: ${webexApis == null}");
+
+  if (!kIsWeb) {
+    tz_latest.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
   }
 }

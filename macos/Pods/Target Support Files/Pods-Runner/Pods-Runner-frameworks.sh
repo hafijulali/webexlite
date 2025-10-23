@@ -176,18 +176,21 @@ code_sign_if_enabled() {
 }
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/app_links/app_links.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/package_info_plus/package_info_plus.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/path_provider_foundation/path_provider_foundation.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/url_launcher_macos/url_launcher_macos.framework"
 fi
 if [[ "$CONFIGURATION" == "Profile" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/app_links/app_links.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/package_info_plus/package_info_plus.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/path_provider_foundation/path_provider_foundation.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/url_launcher_macos/url_launcher_macos.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
+  install_framework "${BUILT_PRODUCTS_DIR}/app_links/app_links.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/package_info_plus/package_info_plus.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/path_provider_foundation/path_provider_foundation.framework"

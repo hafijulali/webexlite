@@ -7,7 +7,14 @@ abstract class RoomsEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadRooms extends RoomsEvent {}
+class LoadRooms extends RoomsEvent {
+  final bool forceRefresh;
+
+  const LoadRooms({this.forceRefresh = false});
+
+  @override
+  List<Object> get props => [forceRefresh];
+}
 
 class BlockRoom extends RoomsEvent {
   final String roomId;

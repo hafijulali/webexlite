@@ -1,3 +1,4 @@
+import 'package:webexapis/routes/meetings/model.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class MeetingsState extends Equatable {
@@ -12,7 +13,7 @@ class MeetingsInitial extends MeetingsState {}
 class MeetingsLoading extends MeetingsState {}
 
 class MeetingsLoaded extends MeetingsState {
-  final List<dynamic> meetings;
+  final List<Meeting> meetings;
 
   const MeetingsLoaded(this.meetings);
 

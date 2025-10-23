@@ -12,7 +12,7 @@ import 'bloc/messages_bloc.dart';
 import 'bloc/messages_event.dart';
 import 'bloc/messages_state.dart';
 
-class MessagesPage extends StatelessWidget {
+class MessagesPage extends StatefulWidget {
   final String roomId;
   final String roomTitle;
   final String roomType;
@@ -25,75 +25,91 @@ class MessagesPage extends StatelessWidget {
   });
 
   @override
+  State<MessagesPage> createState() => _MessagesPageState();
+}
+
+class _MessagesPageState extends State<MessagesPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<MessagesBloc>().add(LoadMessages(widget.roomId));
+  }
+
+  @override
   Widget build(BuildContext context) {
     Constants().currentPageRoute =
-        "${Constants().messagesPageRoute} $roomTitle";
+        "${Constants().messagesPageRoute} ${widget.roomTitle}";
 
-    debugPrint("Building room: $roomTitle roomType: $roomType roomId: $roomId");
+    debugPrint(
+        "Building room: ${widget.roomTitle} roomType: ${widget.roomType} roomId: ${widget.roomId}");
 
-    return BlocProvider(
-      create: (context) => MessagesBloc()..add(LoadMessages(roomId)),
-      child: Builder(
-        builder: (context) {
-          return Scaffold(
-            appBar: appBar(context, hintText: roomTitle, onRefresh: () {
-              context.read<MessagesBloc>().add(LoadMessages(roomId));
-            }),
-            body: BlocBuilder<MessagesBloc, MessagesState>(
-              builder: (context, state) {
-                if (state is MessagesLoading || state is MessagesInitial) {
-                  return const Center(child: SizedBox(
-                      width: 30, height: 30, child: CircularProgressIndicator()));
-                } else if (state is MessagesError) {
-                  return Center(child: Text(textAlign: TextAlign.center, state.error));
-                } else if (state is MessagesLoaded) {
-                  if (state.messages.isEmpty) {
-                    return Center(
-                      child: InkWell(
-                        onTap: () => safePop(context),
-                        child: const Text(
-                            textAlign: TextAlign.center,
-                            "No messages found.\nClick here to go back."),
-                      ),
-                    );
+    return Builder(builder: (context) {
+      return Scaffold(
+        appBar: appBar(context, hintText: widget.roomTitle, onRefresh: () {
+          context
+              .read<MessagesBloc>()
+              .add(LoadMessages(widget.roomId, forceRefresh: true));
+        }),
+        body: BlocBuilder<MessagesBloc, MessagesState>(
+          builder: (context, state) {
+            if (state is MessagesLoading || state is MessagesInitial) {
+              return const Center(
+                  child: SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator()));
+            } else if (state is MessagesError) {
+              return Center(
+                  child: Text(textAlign: TextAlign.center, state.error));
+            } else if (state is MessagesLoaded) {
+              if (state.messages.isEmpty) {
+                return Center(
+                  child: InkWell(
+                    onTap: () => safePop(context),
+                    child: const Text(
+                        textAlign: TextAlign.center,
+                        "No messages found.\nClick here to go back."),
+                  ),
+                );
+              }
+              debugPrint('messages loaded: ${state.messages.length}');
+
+              return PackerList<Message>.lazy(
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                parser: (json) => Message.fromJson(json),
+                items: state.messages.map((e) => e.toJson()).toList(),
+                itemBuilder: (Message message) {
+                  final messageText = message.text ?? "";
+                  final files = message.files;
+                  String titleText = messageText;
+                  if (messageText.isEmpty &&
+                      files != null &&
+                      files.isNotEmpty) {
+                    titleText = files.join(" ");
                   }
-                  debugPrint('messages loaded: ${state.messages.length}');
 
-                  return PackerList<Message>.lazy(
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    parser: (json) => Message.fromJson(json),
-                    items: state.messages.map((e) => e.toJson()).toList(),
-                    itemBuilder: (Message message) {
-                      final messageText = message.text ?? "";
-                      final files = message.files;
-                      String titleText = messageText;
-                      if (messageText.isEmpty && files != null && files.isNotEmpty) {
-                        titleText = files.join(" ");
-                      }
-
-                      return ListTile(
-                        onTap: (files != null && files.isNotEmpty) ? () => showImages(context, files.first) : null,
-                        onLongPress: () async {
-                          await Clipboard.setData(
-                              ClipboardData(text: messageText));
-                          showSnackbar(
-                            'Copied to clipboard',
-                          );
-                        },
-                        subtitle: Text(
-                            "${message.personEmail ?? message.id} - ${message.created}"),
-                        title: Text(titleText),
+                  return ListTile(
+                    onTap: (files != null && files.isNotEmpty)
+                        ? () => showImages(context, files.first)
+                        : null,
+                    onLongPress: () async {
+                      await Clipboard.setData(
+                          ClipboardData(text: messageText));
+                      showSnackbar(
+                        'Copied to clipboard',
                       );
                     },
+                    subtitle: Text(message.personEmail ?? message.id),
+                    title: Text(titleText),
                   );
-                }
-                return Container(); // Should not happen
-              },
-            ),
-          );
-        }
-      ),
-    );
+                },
+              );
+            }
+            return Container(); // Should not happen
+          },
+        ),
+      );
+    });
   }
 }
 

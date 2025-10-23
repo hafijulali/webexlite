@@ -7,4 +7,11 @@ abstract class MeetingsEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class LoadMeetings extends MeetingsEvent {}
+class LoadMeetings extends MeetingsEvent {
+  final bool forceRefresh;
+
+  const LoadMeetings({this.forceRefresh = false});
+
+  @override
+  List<Object> get props => [forceRefresh];
+}

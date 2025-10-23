@@ -4,13 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:packer/widgets/wdigets.dart';
 
 import '../../core/constants/constants.dart';
-import '../../init.dart';
 import 'bloc/meetings_bloc.dart';
 import 'bloc/meetings_event.dart';
 import 'bloc/meetings_state.dart';
 
 class MeetingsPage extends StatefulWidget {
-  const MeetingsPage({super.key});
+  final VoidCallback onGoToFirstPage;
+  const MeetingsPage({super.key, required this.onGoToFirstPage});
 
   @override
   State<MeetingsPage> createState() => _MeetingsPageState();
@@ -20,7 +20,7 @@ class _MeetingsPageState extends State<MeetingsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MeetingsBloc>().add(LoadMeetings());
+    context.read<MeetingsBloc>().add(const LoadMeetings());
   }
 
   @override
@@ -37,7 +37,7 @@ class _MeetingsPageState extends State<MeetingsPage> {
           if (state.meetings.isEmpty) {
             return Center(
               child: InkWell(
-                onTap: () => pageController.jumpToPage(0),
+                onTap: widget.onGoToFirstPage,
                 child: const Text(
                     textAlign: TextAlign.center,
                     "No meetings found.\nClick here to open a room."),
@@ -49,14 +49,14 @@ class _MeetingsPageState extends State<MeetingsPage> {
             itemBuilder: (meeting) => ListTile(
               onLongPress: () async {
                 await Clipboard.setData(
-                    ClipboardData(text: "${meeting['title']}"));
+                    ClipboardData(text: meeting.title));
                 showSnackbar(
                   'Copied to clipboard',
                 );
               },
-              subtitle: Text("${meeting['start']} - ${meeting['end']}"),
+              subtitle: Text("${meeting.start} - ${meeting.end}"),
               title: Text(
-                meeting['title'],
+                meeting.title,
               ),
             ),
           );

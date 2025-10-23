@@ -4,11 +4,13 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:packer/widgets/wdigets.dart' hide showAlertDialog;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:webexapis/routes/rooms/model.dart';
+import 'package:webexapis/webexapis.dart';
 
 import '../../core/constants/constants.dart';
-import '../../custom/widgets/app_bar.dart';
+
 import '../../custom/widgets/alert_dialog.dart';
 import '../../init.dart';
+import '../messages_page/bloc/messages_bloc.dart';
 import '../messages_page/messages_page.dart';
 import 'bloc/rooms_bloc.dart';
 import 'bloc/rooms_event.dart';
@@ -25,7 +27,7 @@ class _RoomsPageState extends State<RoomsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<RoomsBloc>().add(LoadRooms());
+    context.read<RoomsBloc>().add(const LoadRooms());
   }
 
   @override
@@ -77,15 +79,20 @@ class _RoomsPageState extends State<RoomsPage> {
                       }
                     },
                     onTap: () {
+                      final webexApis = context.read<WebexApis>();
                       Constants().currentPageRoute =
                           "${Constants().messagesPageRoute} ${room.title}";
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MessagesPage(
-                            roomTitle: room.title,
-                            roomId: room.id,
-                            roomType: room.type,
+                          builder: (context) => BlocProvider(
+                            create: (context) =>
+                                MessagesBloc(webexApis: webexApis),
+                            child: MessagesPage(
+                              roomTitle: room.title,
+                              roomId: room.id,
+                              roomType: room.type,
+                            ),
                           ),
                         ),
                       );
