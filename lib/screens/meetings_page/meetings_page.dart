@@ -8,6 +8,8 @@ import 'bloc/meetings_bloc.dart';
 import 'bloc/meetings_event.dart';
 import 'bloc/meetings_state.dart';
 
+import 'package:intl/intl.dart';
+
 class MeetingsPage extends StatefulWidget {
   final VoidCallback onGoToFirstPage;
   const MeetingsPage({super.key, required this.onGoToFirstPage});
@@ -54,7 +56,8 @@ class _MeetingsPageState extends State<MeetingsPage> {
                   'Copied to clipboard',
                 );
               },
-              subtitle: Text("${meeting.start} - ${meeting.end}"),
+              subtitle: Text(
+                  '${DateFormat('MMM d, yyyy h:mm a').format(meeting.start?.toLocal() ?? DateTime.now())} - ${DateFormat('h:mm a').format(meeting.end?.toLocal() ?? DateTime.now())}'),
               title: Text(
                 meeting.title,
               ),

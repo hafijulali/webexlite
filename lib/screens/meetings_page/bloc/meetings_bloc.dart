@@ -15,17 +15,13 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
       emit(MeetingsLoading());
 
       if (!event.forceRefresh) {
-        // Debug print: Attempting to load meetings from cache
-        debugPrint('MeetingsBloc: Attempting to load meetings from cache...');
         try {
           final cachedItems = meetingsDatabase?.get('meetings');
           if (cachedItems != null) {
             final meetings = (cachedItems as List)
-                .map((item) => Meeting.fromJson(Map<String, dynamic>.from(item))) // Fix: Explicitly convert to Map<String, dynamic>
+                .map((item) => Meeting.fromJson(Map<String, dynamic>.from(item)))
                 .toList();
             emit(MeetingsLoaded(meetings));
-            // Debug print: Meetings loaded from cache
-            debugPrint('MeetingsBloc: Meetings loaded from cache.');
             return;
           }
         } catch (e) {
@@ -40,8 +36,6 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
               .map((item) => Meeting.fromJson(item as Map<String, dynamic>))
               .toList();
           await meetingsDatabase?.put('meetings', response['items']);
-          // Debug print: Meetings saved to cache
-          debugPrint('MeetingsBloc: Meetings saved to cache.');
           emit(MeetingsLoaded(meetings));
         } else {
           emit(MeetingsError(

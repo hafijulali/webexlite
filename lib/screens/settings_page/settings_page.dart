@@ -100,7 +100,26 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 16),
       _enableDebugLogs(context),
       const SizedBox(height: 16),
+      _signOut(context),
     ];
+  }
+
+  ListTile _signOut(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.logout),
+      title: const Text('Sign Out'),
+      onTap: () async {
+        debugPrint("SettingsPage: signing out");
+        await webexApis?.signOut();
+        await settingsDatabase?.delete(Constants().tokenSettingsKey);
+        if (!mounted) return;
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Constants().loginPageRoute,
+          (route) => false,
+        );
+      },
+    );
   }
 
   Widget settingsPage(BuildContext context) {

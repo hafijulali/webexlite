@@ -21,10 +21,9 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
           final cachedItems = messagesDatabase?.get(event.roomId);
           if (cachedItems != null) {
             final messages = (cachedItems as List)
-                .map((item) => Message.fromJson(Map<String, dynamic>.from(item))) // Fix: Explicitly convert to Map<String, dynamic>
+                .map((item) => Message.fromJson(Map<String, dynamic>.from(item)))
                 .toList();
             emit(MessagesLoaded(messages));
-            debugPrint('MessagesBloc: Messages loaded from cache for room ${event.roomId}. Count: ${messages.length}');
             return;
           }
         } catch (e) {
@@ -32,7 +31,6 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
         }
       }
 
-      debugPrint('MessagesBloc: Making API call to getMessages for room ${event.roomId}...');
       try {
         final response =
             await webexApis.getMessages(max: maxItems, roomId: event.roomId);
@@ -40,11 +38,9 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
           final messages = (response['items'] as List)
               .map((item) => Message.fromJson(item as Map<String, dynamic>))
               .toList();
-          debugPrint('MessagesBloc: Messages received from API for room ${event.roomId}. Count: ${messages.length}');
+
           await messagesDatabase?.put(event.roomId, response['items']);
-          debugPrint('MessagesBloc: Messages saved to cache for room ${event.roomId}.');
           emit(MessagesLoaded(messages));
-          debugPrint('MessagesBloc: MessagesLoaded emitted with new data.');
         } else {
           if (state is! MessagesLoaded) {
             emit(MessagesError(

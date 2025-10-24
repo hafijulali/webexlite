@@ -57,6 +57,6 @@ void openOverlay(BuildContext context, String url) async {
 
 void _closeOverlay(BuildContext context) {
   debugPrint('closing overlay');
+  _overlayEntry?.remove();
   _overlayEntry = null;
-  Overlay.of(context).dispose();
 }

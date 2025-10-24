@@ -11,7 +11,6 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
 
   RoomsBloc({required this.webexApis}) : super(RoomsInitial()) {
     on<LoadRooms>((event, emit) async {
-      debugPrint('RoomsBloc: LoadRooms event received, forceRefresh: ${event.forceRefresh}');
       emit(RoomsLoading());
 
       if (!event.forceRefresh) {
@@ -24,7 +23,6 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
                 .map((item) => Room.fromJson(Map<String, dynamic>.from(item)))
                 .toList();
             emit(RoomsLoaded(rooms));
-            debugPrint('RoomsBloc: Rooms loaded from cache. Count: ${rooms.length}');
             return;
           }
         } catch (e) {
@@ -32,19 +30,14 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
         }
       }
 
-      debugPrint('RoomsBloc: Making API call to getRooms...');
       try {
         final response = await webexApis.getRooms(max: maxItems);
         if (response['items'] != null) {
           final rooms = (response['items'] as List)
               .map((item) => Room.fromJson(item as Map<String, dynamic>))
               .toList();
-          debugPrint('RoomsBloc: Rooms received from API. Count: ${rooms.length}');
           await roomsDatabase?.put('rooms', response['items']);
-          debugPrint('RoomsBloc: Rooms saved to cache.');
-
           emit(RoomsLoaded(rooms));
-          debugPrint('RoomsBloc: RoomsLoaded emitted with new data.');
         } else {
           if (state is! RoomsLoaded) {
             emit(RoomsError(response['message']));

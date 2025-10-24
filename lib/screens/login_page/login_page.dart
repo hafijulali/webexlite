@@ -151,6 +151,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _launchAuthorizationUrl() async {
+    debugPrint("LoginPage: _launchAuthorizationUrl called");
     final scopes = [
       'spark:people_read',
       'spark:people_write',
@@ -165,6 +166,8 @@ class _LoginPageState extends State<LoginPage> {
       'spark-compliance:teams_read',
       'spark:teams_read',
       'spark-compliance:messages_read',
+      'meeting:schedules_write',
+      'meeting:schedules_read',
     ];
     _pkcePair = webexApis.generatePKCEPair();
     await settingsDatabase?.put('code_verifier', _pkcePair!.codeVerifier);

@@ -85,13 +85,16 @@ class _RoomsPageState extends State<RoomsPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BlocProvider(
-                            create: (context) =>
-                                MessagesBloc(webexApis: webexApis),
-                            child: MessagesPage(
-                              roomTitle: room.title,
-                              roomId: room.id,
-                              roomType: room.type,
+                          builder: (context) => RepositoryProvider.value(
+                            value: webexApis,
+                            child: BlocProvider(
+                              create: (context) =>
+                                  MessagesBloc(webexApis: webexApis),
+                              child: MessagesPage(
+                                roomTitle: room.title,
+                                roomId: room.id,
+                                roomType: room.type,
+                              ),
                             ),
                           ),
                         ),

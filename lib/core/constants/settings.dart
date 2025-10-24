@@ -19,4 +19,5 @@ mixin SettingConstants on BaseSettingConstants {
   String showSubtitleKey = 'Subtitle';
   String tokenSettingsKey = 'Token';
   String maxItemsSettingsKey = 'MaxItems';
+  String personDatabaseFileName = 'person';
 }

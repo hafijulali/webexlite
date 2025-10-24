@@ -34,6 +34,7 @@ String? messagesDatabaseFilePath;
 String? meetingsDatabaseFilePath;
 String? settingsDatabaseFilePath;
 String? blockDatabaseFilePath;
+String? personDatabaseFilePath;
 Directory? databaseDirectory;
 WebexApis? webexApis;
 Token? token;
@@ -132,10 +133,20 @@ Future<void> _initDatabase() async {
     blockDatabase = null;
   }
 
+  try {
+    personDatabase = await Hive.openBox<dynamic>(
+      Constants().personDatabaseFileName,
+    );
+  } catch (e) {
+    debugPrint('Error opening personDatabase: $e');
+    personDatabase = null;
+  }
+
   roomsDatabaseFilePath = roomsDatabase?.path.toString();
   messagesDatabaseFilePath = messagesDatabase?.path.toString();
   meetingsDatabaseFilePath = meetingsDatabase?.path.toString();
   settingsDatabaseFilePath = settingsDatabase?.path.toString();
+  personDatabaseFilePath = personDatabase?.path.toString();
   if (!kIsWeb) {
     databaseDirectory = Directory(roomsDatabaseFilePath!).parent;
   }
@@ -184,8 +195,6 @@ Future<void> _initServices() async {
   }
   debugPrint("webexApis is null: ${webexApis == null}");
 
-  if (!kIsWeb) {
-    tz_latest.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
-  }
+  tz_latest.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 }
