@@ -1,16 +1,18 @@
+import 'dart:convert';
 import 'dart:io';
+
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:packer/utils/permissions_utils.dart';
-import 'package:packer/widgets/snack_bar.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:hive_ce/hive.dart';
 
-import '../../../core/constants/constants.dart';
-import '../../../custom/widgets/alert_dialog.dart';
-import '../../../init.dart';
+
+import 'package:path_provider/path_provider.dart';
+import 'package:webexlite/core/constants/constants.dart';
+import 'package:webexlite/init.dart';
+
 
 ListTile importDatabase(BuildContext context) {
   return ListTile(
@@ -21,11 +23,10 @@ ListTile importDatabase(BuildContext context) {
 }
 
 Future<dynamic> _import(BuildContext context) async {
-  debugPrint("Settings: importing database");
-  try {
+        logger?.log("Settings: importing database");  try {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
-        checkStoragePermissions(context);
+
       }
       String? importFilePath;
       FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -33,11 +34,37 @@ Future<dynamic> _import(BuildContext context) async {
       if (result == null) {
         importFilePath =
             '${(await getApplicationDocumentsDirectory()).path}/${Constants().appName}Export.zip';
-        debugPrint(
-            "Settings: no file picked, using default import path: $importFilePath");
+      if (result != null) {
+        logger?.log("Settings: selected files: ${result.files}");
+        final importFilePath = result.files.single.path;
+        if (importFilePath != null) {
+          logger?.log("Settings: importing from: $importFilePath");
+          try {
+            final file = File(importFilePath);
+            final jsonString = await file.readAsString();
+            final jsonMap = json.decode(jsonString);
+
+            for (var entry in jsonMap.entries) {
+              final boxName = entry.key;
+              final boxData = entry.value;
+              final box = await Hive.openBox(boxName);
+              await box.putAll(boxData);
+            }
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Database imported successfully')),
+            );
+          } catch (e) {
+            logger?.log("Settings: database import failed, error: $e");
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Database import failed: $e')),
+            );
+          }
+        }
+      }
       } else {
         importFilePath = result.files.single.path;
-        debugPrint("Settings: importing from: $importFilePath");
+        logger?.log("Settings: importing from: $importFilePath");
       }
 
       final Uint8List databaseBundleZip =
@@ -56,14 +83,39 @@ Future<dynamic> _import(BuildContext context) async {
         }
       }
       if (!context.mounted) return null;
-      await showAlertDialog(context, 'Database Imported Successully.',
-          'Please restart app to take effect');
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Database Imported Successully.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
     } else {
-      await showSnackbar('Import feature is not available on web yet');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Import feature is not available on web yet')),
+      );
     }
   } on Exception catch (e) {
     if (!context.mounted) return null;
-    debugPrint("Settings: database import failed, error: $e");
-    await showAlertDialog(context, 'Database Import Failed !!!', 'Error: $e');
+          logger?.log("Settings: database import failed, error: $e");
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Database Import Failed !!!'),
+              content: Text('Error: $e'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
   }
 }

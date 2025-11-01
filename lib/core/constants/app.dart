@@ -10,4 +10,5 @@ mixin AppConstants on BaseAppConstants {
   String secureDatabaseFileName = 'secure';
   String appCodebase = 'https://gitlab.com/hafijulali/webexlite';
   String webexApiTokenUrl = 'https://developer.webex.com/docs/getting-started';
+  double settingsTileWidgetWidth = 150;
 }

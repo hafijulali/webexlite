@@ -19,5 +19,9 @@ mixin SettingConstants on BaseSettingConstants {
   String showSubtitleKey = 'Subtitle';
   String tokenSettingsKey = 'Token';
   String maxItemsSettingsKey = 'MaxItems';
+  @override
+  String messageOverlaySettingsKey = 'MessageOverlay';
+  String cacheExpiryTimeSettingsKey = 'CacheExpiryTime';
   String personDatabaseFileName = 'person';
+  String searchDatabaseFileName = 'search';
 }

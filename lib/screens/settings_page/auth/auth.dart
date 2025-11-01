@@ -11,7 +11,7 @@ ListTile auth(BuildContext context) {
     title: const Text('API Key'),
     subtitle: InkWell(
         onTap: () {
-          debugPrint("Settings: opening webex api token url");
+          logger?.log("Settings: opening webex api token url");
           launchUrlString(Constants().webexApiTokenUrl);
         },
         child: const Text(
@@ -20,14 +20,14 @@ ListTile auth(BuildContext context) {
       width: Constants().settingsTileWidgetWidth,
       child: TextFormField(
         onEditingComplete: () {
-          debugPrint("Settings: saving api key");
+          logger?.log("Settings: saving api key");
           try {
             settingsDatabase?.put(
                 Constants().tokenSettingsKey, apiKeyTextController.text);
             showSnackbar(Constants().apiKeySaved, null);
             apiKeyTextController.text = '';
           } catch (e) {
-            debugPrint("Settings: failed to save api key, error: $e");
+            logger?.log("Settings: failed to save api key, error: $e");
             showSnackbar(Constants().apiKeySaveError, null);
           }
         },

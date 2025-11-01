@@ -1,6 +1,12 @@
+import 'package:webexapis/webexapis.dart';
+import 'package:provider/provider.dart';
+
+import 'package:packer/logging/file_logger.dart';
+import 'log_viewer_page.dart';
 import 'package:flutter/material.dart';
 import 'package:packer/utils/package_utils.dart';
 import 'package:packer/widgets/app_bar.dart';
+import 'package:packer/widgets/snack_bar.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../init.dart';
@@ -23,12 +29,86 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  bool _useMessageOverlay = false;
+  int _cacheExpiryTime = 60; // Default to 60 minutes
+
+  SwitchListTile _useMessageOverlaySwitchTile(BuildContext context) {
+    return SwitchListTile(
+      title: const Text('Use Message Overlay'),
+      subtitle: const Text('Use overlay for sending messages instead of a new page'),
+      value: _useMessageOverlay,
+      onChanged: (bool value) {
+        logger?.log("SettingsPage: toggling Message Overlay to $value");
+        setState(() {
+          _useMessageOverlay = value;
+          settingsDatabase?.put(Constants().messageOverlaySettingsKey, value);
+        });
+      },
+      secondary: const Icon(Icons.message_outlined),
+    );
+  }
+
+  ListTile _cacheExpiryTimeDropdown(BuildContext context) {
+    final List<int> expiryOptions = [
+      1, // 1 minute
+      5, // 5 minutes
+      15, // 15 minutes
+      30, // 30 minutes
+      60, // 1 hour
+      120, // 2 hours
+      240, // 4 hours
+      480, // 8 hours
+    ];
+
+    List<DropdownMenuEntry<int>> dropdownMenuEntries() {
+      final List<DropdownMenuEntry<int>> menuItems = List.empty(growable: true);
+      for (final int value in expiryOptions) {
+        String text;
+        if (value < 60) {
+          text = '$value minutes';
+        } else if (value == 60) {
+          text = '1 hour';
+        } else {
+          text = '${value ~/ 60} hours';
+        }
+        menuItems.add(
+          DropdownMenuEntry<int>(
+            value: value,
+            label: text,
+          ),
+        );
+      }
+      return menuItems;
+    }
+
+    return ListTile(
+      leading: const Icon(Icons.timer),
+      title: const Text('Cache Expiry Time'),
+      trailing: SizedBox(
+        width: Constants().settingsTileWidgetWidth,
+        child: DropdownMenu<int>(
+          hintText: _cacheExpiryTime.toString(),
+          dropdownMenuEntries: dropdownMenuEntries(),
+          onSelected: (value) {
+            if (value != null) {
+              logger?.log("SettingsPage: setting cache expiry time to $value minutes");
+              setState(() {
+                _cacheExpiryTime = value;
+                settingsDatabase?.put(Constants().cacheExpiryTimeSettingsKey, value);
+              });
+            }
+          },
+        ),
+      ),
+    );
+  }
+
   SwitchListTile _useMaterial3(BuildContext context) {
     return SwitchListTile(
       title: const Text('Use Material 3'),
       value: useMaterial3,
       onChanged: (bool value) {
-        debugPrint("SettingsPage: toggling Material3 to $value");
+        logger?.log("SettingsPage: toggling Material3 to $value");
         setState(() {
           settingsDatabase!.put(Constants().material3SettingsKey, value);
           useMaterial3 = value;
@@ -48,11 +128,11 @@ class _SettingsPageState extends State<SettingsPage> {
           enableDebug = value;
         });
         if (enableDebug) {
-          debugPrint("Debug logs enabled");
-          webexApis?.apiClient.enableDebugLogs();
+          logger?.log("Debug logs enabled");
+          context.read<WebexApis>().apiClient.enableDebugLogs();
         } else {
-          debugPrint("Debug logs disabled");
-          webexApis?.apiClient.disableDebugLogs();
+          logger?.log("Debug logs disabled");
+          context.read<WebexApis>().apiClient.disableDebugLogs();
         }
       },
       secondary: const Icon(Icons.design_services_outlined),
@@ -64,13 +144,88 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Show subtitle in list items'),
       value: showSubtitle,
       onChanged: (bool value) {
-        debugPrint("SettingsPage: toggling showSubtitle to $value");
+        logger?.log("SettingsPage: toggling showSubtitle to $value");
         setState(() {
           showSubtitle = value;
           settingsDatabase?.put(Constants().showSubtitleKey, value);
         });
       },
       secondary: const Icon(Icons.subtitles_outlined),
+    );
+  }
+
+  void _navigateToLogin(BuildContext context) {
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      Constants().loginPageRoute,
+      (route) => false,
+    );
+  }
+
+  ListTile _signOut(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.logout),
+      title: const Text('Sign Out'),
+      onTap: () async {
+        logger?.log("SettingsPage: signing out");
+        await context.read<WebexApis>().signOut();
+        await settingsDatabase?.delete(Constants().tokenSettingsKey);
+        if (context.mounted) {
+          _navigateToLogin(context);
+        }
+      },
+    );
+  }
+
+  ListTile _buildInfo(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.mobile_friendly_outlined),
+      title: Text('App Version : $appVersion'),
+      onTap: () async {
+        logger?.log("SettingsPage: opening app codebase url");
+        await launchUrlString(Constants().appCodebase);
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    logger?.log("SettingsPage: initState");
+    getAppVersion()
+        .then((String version) => setState(() => appVersion = version));
+    _useMessageOverlay = settingsDatabase?.get(Constants().messageOverlaySettingsKey) ?? false;
+    _cacheExpiryTime = settingsDatabase?.get(Constants().cacheExpiryTimeSettingsKey) ?? 60; // Default to 60 minutes
+  }
+
+  ListTile _viewLogs(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.plagiarism_outlined),
+      title: const Text('View Logs'),
+      onTap: () {
+        if (logger is FileLogger) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LogViewerPage(fileLogger: logger as FileLogger),
+            ),
+          );
+        } else {
+          showSnackbar('Log viewing is only available with FileLogger.');
+        }
+      },
+    );
+  }
+
+  ListTile _exportLogs(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.bug_report_outlined),
+      title: const Text('Export Logs'),
+      onTap: () async {
+        final result = await logger?.exportLogs();
+        if (!mounted) return;
+        showSnackbar(result ?? 'Failed to export logs.');
+      },
     );
   }
 
@@ -82,7 +237,11 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 16),
       _showSubtitle(context),
       const SizedBox(height: 16),
+      _useMessageOverlaySwitchTile(context),
+      const SizedBox(height: 16),
       maxItemsLimit(context),
+      const SizedBox(height: 16),
+      _cacheExpiryTimeDropdown(context),
       const SizedBox(height: 16),
       exportDatabase(context),
       const SizedBox(height: 16),
@@ -96,33 +255,28 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 16),
       auth(context),
       const SizedBox(height: 16),
-      _buildInfo(context),
-      const SizedBox(height: 16),
       _enableDebugLogs(context),
       const SizedBox(height: 16),
+      const Divider(),
+      const SizedBox(height: 16),
+      const Text('Troubleshooting', style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 16),
+      _viewLogs(context),
+      const SizedBox(height: 16),
+      _exportLogs(context),
+      const SizedBox(height: 16),
+      const Divider(),
+      const SizedBox(height: 16),
       _signOut(context),
+      const SizedBox(height: 16),
+      _buildInfo(context),
     ];
   }
 
-  ListTile _signOut(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.logout),
-      title: const Text('Sign Out'),
-      onTap: () async {
-        debugPrint("SettingsPage: signing out");
-        await webexApis?.signOut();
-        await settingsDatabase?.delete(Constants().tokenSettingsKey);
-        if (!mounted) return;
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          Constants().loginPageRoute,
-          (route) => false,
-        );
-      },
-    );
-  }
-
-  Widget settingsPage(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+    currentPath = Constants().settingsPageRoute;
+    logger?.log("Building SettingsPage");
     return Scaffold(
       appBar: PackerAppBar(
         actions: actions(context),
@@ -133,31 +287,5 @@ class _SettingsPageState extends State<SettingsPage> {
         child: ListView(children: _widgetsTiles(context)),
       ),
     );
-  }
-
-  ListTile _buildInfo(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.mobile_friendly_outlined),
-      title: Text('App Version : $appVersion'),
-      onTap: () async {
-        debugPrint("SettingsPage: opening app codebase url");
-        await launchUrlString(Constants().appCodebase);
-      },
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    debugPrint("SettingsPage: initState");
-    getAppVersion()
-        .then((String version) => setState(() => appVersion = version));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    currentPath = Constants().settingsPageRoute;
-    debugPrint("Building SettingsPage");
-    return settingsPage(context);
   }
 }

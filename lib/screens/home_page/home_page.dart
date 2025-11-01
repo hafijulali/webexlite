@@ -11,11 +11,13 @@ import '../../init.dart';
 import '../meetings_page/bloc/meetings_bloc.dart';
 import '../meetings_page/bloc/meetings_event.dart';
 import '../meetings_page/meetings_page.dart';
-import '../messages_page/bloc/messages_bloc.dart';
+
 import '../messages_page/messages_page.dart';
 import '../rooms_page/bloc/rooms_bloc.dart';
 import '../rooms_page/bloc/rooms_event.dart';
 import '../rooms_page/rooms_page.dart';
+import '../search_page/bloc/search_bloc.dart';
+import '../search_page/bloc/search_event.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -26,6 +28,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final PageController pageController;
+  final TextEditingController _searchController = TextEditingController();
   Map<int, GlobalKey<NavigatorState>> navigatorKey =
       <int, GlobalKey<NavigatorState>>{
     0: GlobalKey<NavigatorState>(),
@@ -37,16 +40,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     pageController = PageController(initialPage: currentPageIndex);
-    debugPrint("HomePage: initState");
+    logger?.log("HomePage: initState");
     if (accessToken == null || accessToken!.isEmpty) {
       PackerSnackBar(content: Constants().apiKeyNotSet).show();
     } else {}
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SearchBloc>().add(const LoadRecentSearches());
+    });
   }
 
   @override
   void dispose() {
-    debugPrint("HomePage: dispose");
+    logger?.log("HomePage: dispose");
     pageController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -56,60 +63,62 @@ class _HomePageState extends State<HomePage> {
       currentPath = routes.keys.toList().elementAt(currentPageIndex);
       pageController.jumpToPage(currentPageIndex);
     });
-    debugPrint("HomePage: bottom nav tapped, index: $gotoIndex $currentPath");
+    logger?.log("HomePage: bottom nav tapped, index: $gotoIndex $currentPath");
   }
 
   void _onRefresh(BuildContext refreshContext) {
-    debugPrint("HomePage: refreshing page $currentPageIndex");
+    logger?.log("HomePage: refreshing page $currentPageIndex");
     switch (currentPageIndex) {
       case 0:
-        refreshContext.read<RoomsBloc>().add(const LoadRooms(forceRefresh: true));
+        logger?.log("HomePage: refreshing rooms");
+        refreshContext
+            .read<RoomsBloc>()
+            .add(const LoadRooms(forceRefresh: true));
         break;
       case 1:
         // This is the placeholder messages page, nothing to refresh.
+        logger?.log("HomePage: skipping refresh for messages page");
         break;
       case 2:
-        refreshContext.read<MeetingsBloc>().add(const LoadMeetings(forceRefresh: true));
+        logger?.log("HomePage: refreshing meetings");
+        refreshContext
+            .read<MeetingsBloc>()
+            .add(const LoadMeetings(forceRefresh: true));
         break;
     }
+    logger?.log("HomePage: refresh complete");
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("Building HomePage");
-    debugPrint("HomePage: webexApis is null: ${context.read<WebexApis>() == null}");
+    logger?.log("Building HomePage");
+        logger?.log("HomePage: webexApis is null: ${context.read<WebexApis>()}");
 
     final tabs = [
       const RoomsPage(),
       Builder(
-        builder: (context) => const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
+        builder: (context) =>
+            const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
       ),
       MeetingsPage(onGoToFirstPage: () => pageController.jumpToPage(0)),
     ];
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<RoomsBloc>(
-          create: (BuildContext context) =>
-              RoomsBloc(webexApis: context.read<WebexApis>())..add(LoadRooms()),
-        ),
-        BlocProvider<MeetingsBloc>(
-          create: (BuildContext context) =>
-              MeetingsBloc(webexApis: context.read<WebexApis>())..add(LoadMeetings()),
-        ),
-        BlocProvider<MessagesBloc>(
-          create: (BuildContext context) =>
-              MessagesBloc(webexApis: context.read<WebexApis>()),
-        ),
-      ],
-      child: Builder(
-        builder: (context) => Scaffold(
-          appBar: appBar(context, onRefresh: () => _onRefresh(context)),
+    return Scaffold(
+          appBar: appBar(
+            context,
+            onRefresh: () => _onRefresh(context),
+            searchController: _searchController,
+            onSearchEditingComplete: () {
+              logger?.log("HomePage: onSearchEditingComplete triggered");
+              // Handle search submission here
+              logger?.log("Search submitted: ${_searchController.text}");
+            },
+          ),
           body: PageView(
             controller: pageController,
             children: tabs,
             onPageChanged: (value) {
-              debugPrint("HomePage: page changed to $value");
+              logger?.log("HomePage: page changed to $value");
               setState(() {
                 currentPageIndex = value;
                 currentPath = routes.keys.toList().elementAt(currentPageIndex);
@@ -121,9 +130,7 @@ class _HomePageState extends State<HomePage> {
             currentIndex: currentPageIndex,
             onItemTapped: _onItemTapped,
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Navigator navigateTo() => Navigator(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive_ce_flutter/adapters.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:packer/widgets/wdigets.dart' hide showAlertDialog;
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:webexapis/routes/rooms/model.dart';
@@ -37,8 +37,9 @@ class _RoomsPageState extends State<RoomsPage> {
     return BlocBuilder<RoomsBloc, RoomsState>(
       builder: (context, state) {
         if (state is RoomsLoading || state is RoomsInitial) {
-          return const Center(child: SizedBox(
-              width: 30, height: 30, child: CircularProgressIndicator()));
+          return const Center(
+              child: SizedBox(
+                  width: 30, height: 30, child: CircularProgressIndicator()));
         } else if (state is RoomsError) {
           return Center(
             child: InkWell(
@@ -57,7 +58,8 @@ class _RoomsPageState extends State<RoomsPage> {
               return PackerList(
                 items: items,
                 itemBuilder: (Room room) {
-                  if (blockDatabase != null && blockDatabase!.containsKey(room.id)) {
+                  if (blockDatabase != null &&
+                      blockDatabase!.containsKey(room.id)) {
                     return const SizedBox.shrink();
                   }
                   return ListTile(
@@ -75,7 +77,7 @@ class _RoomsPageState extends State<RoomsPage> {
                           "Do you want to block this chat?");
                       if (result == Constants().ok) {
                         bloc.add(BlockRoom(room.id));
-                        debugPrint("Blocked");
+                        logger?.log("Blocked");
                       }
                     },
                     onTap: () {

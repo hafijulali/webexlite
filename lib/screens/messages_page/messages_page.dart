@@ -7,15 +7,25 @@ import 'package:webexlite/custom/widgets/overlay.dart';
 import 'package:webexlite/custom/widgets/app_bar.dart';
 
 import '../../core/constants/constants.dart';
-import '../../custom/navigation/navigate.dart';
+import 'package:packer/navigation/navigate.dart';
 import 'bloc/messages_bloc.dart';
 import 'bloc/messages_event.dart';
 import 'bloc/messages_state.dart';
+import 'send_messages_page.dart';
 
-import 'package:intl/intl.dart';
 import 'package:webexapis/routes/people/model.dart';
 import 'package:webexapis/webexapis.dart';
 import '../../init.dart';
+
+String _formatDateTime(DateTime dateTime) {
+  final year = dateTime.year;
+  final month = dateTime.month.toString().padLeft(2, '0');
+  final day = dateTime.day.toString().padLeft(2, '0');
+  final hour = dateTime.hour.toString().padLeft(2, '0');
+  final minute = dateTime.minute.toString().padLeft(2, '0');
+
+  return '$year-$month-$day $hour:$minute';
+}
 
 class MessagesPage extends StatefulWidget {
   final String roomId;
@@ -35,7 +45,8 @@ class MessagesPage extends StatefulWidget {
 
 class _MessagesPageState extends State<MessagesPage> {
   Future<String> _getPersonDisplayName(String? personEmail) async {
-    debugPrint('MessagesPage: _getPersonDisplayName called for email: $personEmail');
+    logger?.log(
+        'MessagesPage: _getPersonDisplayName called for email: $personEmail');
     if (personEmail == null || personEmail.isEmpty) {
       return "Unknown";
     }
@@ -44,8 +55,10 @@ class _MessagesPageState extends State<MessagesPage> {
     if (personDatabase != null && personDatabase!.containsKey(personEmail)) {
       final cachedPersonJson = personDatabase!.get(personEmail);
       if (cachedPersonJson != null) {
-        final cachedPerson = Person.fromJson(Map<String, dynamic>.from(cachedPersonJson));
-        debugPrint('MessagesPage: Person found in cache: ${cachedPerson.displayName}');
+        final cachedPerson =
+            Person.fromJson(Map<String, dynamic>.from(cachedPersonJson));
+        logger?.log(
+            'MessagesPage: Person found in cache: ${cachedPerson.displayName}');
         return cachedPerson.displayName ?? personEmail;
       }
     }
@@ -53,16 +66,18 @@ class _MessagesPageState extends State<MessagesPage> {
     try {
       final webexApis = context.read<WebexApis>();
       final response = await webexApis.getPeople(email: personEmail);
-      debugPrint('MessagesPage: getPeople API response for $personEmail: $response');
+      logger?.log(
+          'MessagesPage: getPeople API response for $personEmail: $response');
       if (response['items'] != null && (response['items'] as List).isNotEmpty) {
         final person = Person.fromJson(response['items'][0]);
         // Store in Hive cache
         await personDatabase?.put(personEmail, person.toJson());
-        debugPrint('MessagesPage: Person fetched from API and cached: ${person.displayName}');
+        logger?.log(
+            'MessagesPage: Person fetched from API and cached: ${person.displayName}');
         return person.displayName ?? personEmail;
       }
     } catch (e) {
-      debugPrint('Error fetching person details for $personEmail: $e');
+      logger?.log('Error fetching person details for $personEmail: $e');
     }
     return personEmail;
   }
@@ -78,7 +93,7 @@ class _MessagesPageState extends State<MessagesPage> {
     Constants().currentPageRoute =
         "${Constants().messagesPageRoute} ${widget.roomTitle}";
 
-    debugPrint(
+    logger?.log(
         "Building room: ${widget.roomTitle} roomType: ${widget.roomType} roomId: ${widget.roomId}");
 
     return Builder(builder: (context) {
@@ -88,6 +103,18 @@ class _MessagesPageState extends State<MessagesPage> {
               .read<MessagesBloc>()
               .add(LoadMessages(widget.roomId, forceRefresh: true));
         }),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'message_fab_${widget.roomId}', // Unique tag
+          onPressed: () {
+            final useOverlay = settingsDatabase?.get(Constants().messageOverlaySettingsKey) ?? false;
+            if (useOverlay) {
+              openSendMessagesOverlay(context, widget.roomId);
+            } else {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => SendMessagesPage(roomId: widget.roomId)));
+            }
+          },
+          child: const Icon(Icons.message),
+        ),
         body: BlocBuilder<MessagesBloc, MessagesState>(
           builder: (context, state) {
             if (state is MessagesLoading || state is MessagesInitial) {
@@ -110,7 +137,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   ),
                 );
               }
-              debugPrint('messages loaded: ${state.messages.length}');
+              logger?.log('messages loaded: ${state.messages.length}');
 
               return PackerList<Message>.lazy(
                 separatorBuilder: (_, __) => const Divider(height: 1),
@@ -128,11 +155,10 @@ class _MessagesPageState extends State<MessagesPage> {
 
                   return ListTile(
                     onTap: (files != null && files.isNotEmpty)
-                        ? () => showImages(context, files.first)
+                        ? () => showImages(context, files, initialIndex: 0)
                         : null,
                     onLongPress: () async {
-                      await Clipboard.setData(
-                          ClipboardData(text: messageText));
+                      await Clipboard.setData(ClipboardData(text: messageText));
                       showSnackbar(
                         'Copied to clipboard',
                       );
@@ -140,9 +166,10 @@ class _MessagesPageState extends State<MessagesPage> {
                     subtitle: FutureBuilder<String>(
                       future: _getPersonDisplayName(message.personEmail),
                       builder: (context, snapshot) {
-                        final displayName = snapshot.data ?? message.personEmail ?? message.id;
+                        final displayName =
+                            snapshot.data ?? message.personEmail ?? message.id;
                         return Text(
-                            '$displayName - ${DateFormat('MMM d, yyyy h:mm a').format(message.created?.toLocal() ?? DateTime.now())}');
+                            '$displayName - ${_formatDateTime(message.created?.toLocal() ?? DateTime.now())}');
                       },
                     ),
                     title: Text(titleText),
@@ -158,6 +185,6 @@ class _MessagesPageState extends State<MessagesPage> {
   }
 }
 
-void showImages(BuildContext context, String url) {
-  openOverlay(context, url);
+void showImages(BuildContext context, List<String> urls, {int initialIndex = 0}) {
+  openOverlay(context, urls, initialIndex: initialIndex);
 }

@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:webexlite/init.dart';
 
-mixin OAuthConstants {
-  String get redirectUri {
-    if (kIsWeb) {
-      return 'http://localhost:3000';
-    } else {
-      return 'webexlite://callback';
-    }
+class OAuthConstants {
+  static String getRedirectUri() {
+    final environment = kReleaseMode ? 'production' : 'development';
+    return config![environment]['redirect_uri'];
   }
 }

@@ -31,8 +31,9 @@ class _MeetingsPageState extends State<MeetingsPage> {
     return BlocBuilder<MeetingsBloc, MeetingsState>(
       builder: (context, state) {
         if (state is MeetingsLoading || state is MeetingsInitial) {
-          return const Center(child: SizedBox(
-              width: 30, height: 30, child: CircularProgressIndicator()));
+          return const Center(
+              child: SizedBox(
+                  width: 30, height: 30, child: CircularProgressIndicator()));
         } else if (state is MeetingsError) {
           return Center(child: Text(textAlign: TextAlign.center, state.error));
         } else if (state is MeetingsLoaded) {
@@ -50,8 +51,7 @@ class _MeetingsPageState extends State<MeetingsPage> {
             items: state.meetings,
             itemBuilder: (meeting) => ListTile(
               onLongPress: () async {
-                await Clipboard.setData(
-                    ClipboardData(text: meeting.title));
+                await Clipboard.setData(ClipboardData(text: meeting.title));
                 showSnackbar(
                   'Copied to clipboard',
                 );
