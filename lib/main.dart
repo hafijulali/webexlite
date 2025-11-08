@@ -14,16 +14,14 @@ Future<dynamic> main() async {
   await initApp();
   final initialWebexApis = await initServices();
 
-  logger?.debug(
-      'main: before runApp - settingsDatabase is null: ${settingsDatabase == null}');
+  logger?.debug('before runApp - settingsDatabase is null: ${settingsDatabase == null}', source: 'main');
   runApp(
     StreamBuilder<WebexApis?>(
       initialData: initialWebexApis,
       stream: settingsDatabase
               ?.watch(key: Constants().tokenSettingsKey)
               .asyncExpand((event) async* {
-            logger?.debug(
-                'main: StreamBuilder - event received: ${event.value != null ? "token changed" : "token removed"}');
+            logger?.debug('StreamBuilder - event received: ${event.value != null ? "token changed" : "token removed"}', source: 'main');
             if (event.value != null) {
               final storedToken = Map<String, dynamic>.from(event.value);
               token = Token.fromStorage(storedToken);
@@ -39,8 +37,7 @@ Future<dynamic> main() async {
               null), // Provide a default stream if settingsDatabase is null
       builder: (context, snapshot) {
         final currentWebexApis = snapshot.data;
-        logger?.debug(
-            'main: StreamBuilder builder - snapshot.hasData: ${snapshot.hasData}, currentWebexApis: $currentWebexApis');
+        logger?.debug('StreamBuilder builder - snapshot.hasData: ${snapshot.hasData}, currentWebexApis: $currentWebexApis', source: 'main');
 
         if (currentWebexApis != null) {
           return Provider<WebexApis?>(

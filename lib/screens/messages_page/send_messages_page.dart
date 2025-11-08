@@ -44,8 +44,8 @@ class _SendMessagesPageState extends State<SendMessagesPage> {
         });
       }
     } catch (e) {
-      logger?.debug('Error fetching room details: $e');
-      // Optionally show an error message to the user
+      logger?.debug('Error fetching room details: $e', source: 'SendMessagesPage');
+  
     }
   }
 
@@ -69,7 +69,7 @@ class _SendMessagesPageState extends State<SendMessagesPage> {
       ).show();
       clearAllFields();
     } on Exception catch (e) {
-                                logger?.error(e.toString());      PackerSnackBar(content: 'Failed to send message').show();
+                                logger?.error(e.toString(), source: 'SendMessagesPage');      PackerSnackBar(content: 'Failed to send message').show();
     }
   }
 
@@ -88,7 +88,7 @@ class _SendMessagesPageState extends State<SendMessagesPage> {
 
   @override
   Widget build(BuildContext context) {
-    // currentPath = Constants().addAppsPageRoute; // Removed as it's not relevant for SendMessagesPage
+
     return addForm(context);
   }
 

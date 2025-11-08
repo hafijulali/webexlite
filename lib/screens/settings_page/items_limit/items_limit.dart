@@ -28,7 +28,7 @@ ListTile maxItemsLimit(BuildContext context) {
         hintText: maxItems.toString(),
         dropdownMenuEntries: _dropdownMenuEntries(),
         onSelected: (value) {
-                          logger?.debug("Settings: max items limit changed to $value");          maxItems = value;
+                          logger?.debug("max items limit changed to $value", source: 'ItemsLimit');          maxItems = value;
           settingsDatabase!.put(Constants().maxItemsSettingsKey, value);
         },
       ),

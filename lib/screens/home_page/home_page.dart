@@ -41,18 +41,16 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     pageController = PageController(initialPage: currentPageIndex);
-    logger?.debug("HomePage: initState");
+    logger?.debug("initState", source: 'HomePage');
     if (accessToken == null || accessToken!.isEmpty) {
       PackerSnackBar(content: Constants().apiKeyNotSet).show();
     } else {}
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SearchBloc>().add(const LoadRecentSearches());
-    });
+
   }
 
   @override
   void dispose() {
-    logger?.debug("HomePage: dispose");
+    logger?.debug("dispose", source: 'HomePage');
     pageController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -64,44 +62,49 @@ class _HomePageState extends State<HomePage> {
       currentPath = routes.keys.toList().elementAt(currentPageIndex);
       pageController.jumpToPage(currentPageIndex);
     });
-    logger?.debug("HomePage: bottom nav tapped, index: $gotoIndex $currentPath");
+    logger?.debug("bottom nav tapped, index: $gotoIndex $currentPath", source: 'HomePage');
   }
 
   void _onRefresh(BuildContext refreshContext) {
-    logger?.debug("HomePage: refreshing page $currentPageIndex");
+    logger?.debug("refreshing page $currentPageIndex", source: 'HomePage');
     switch (currentPageIndex) {
       case 0:
-        logger?.debug("HomePage: refreshing rooms");
+        logger?.debug("refreshing rooms", source: 'HomePage');
         refreshContext
             .read<RoomsBloc>()
             .add(const LoadRooms(forceRefresh: true));
         break;
       case 1:
-        // This is the placeholder messages page, nothing to refresh.
-        logger?.debug("HomePage: skipping refresh for messages page");
+    
+        logger?.debug("skipping refresh for messages page", source: 'HomePage');
         break;
       case 2:
-        logger?.debug("HomePage: refreshing meetings");
+        logger?.debug("refreshing meetings", source: 'HomePage');
         refreshContext
             .read<MeetingsBloc>()
             .add(const LoadMeetings(forceRefresh: true));
         break;
     }
-    logger?.debug("HomePage: refresh complete");
+    logger?.debug("refresh complete", source: 'HomePage');
   }
 
   @override
   Widget build(BuildContext context) {
-    logger?.debug("Building HomePage");
-        logger?.debug("HomePage: webexApis is null: ${context.read<WebexApis>()}");
+    logger?.debug("Building", source: 'HomePage');
+        logger?.debug("webexApis is null: ${context.read<WebexApis>()}", source: 'HomePage');
 
     final tabs = [
-      const RoomsPage(),
+      Builder(
+        builder: (context) => RoomsPage(),
+      ),
       Builder(
         builder: (context) =>
             const MessagesPage(roomId: '', roomTitle: '', roomType: ''),
       ),
-      MeetingsPage(onGoToFirstPage: () => pageController.jumpToPage(0)),
+      Builder(
+        builder: (context) =>
+            MeetingsPage(onGoToFirstPage: () => pageController.jumpToPage(0)),
+      ),
     ];
 
     return Scaffold(
@@ -110,7 +113,7 @@ class _HomePageState extends State<HomePage> {
             onRefresh: () => _onRefresh(context),
             searchController: _searchController,
             onSearchEditingComplete: () {
-              logger?.debug("HomePage: onSearchEditingComplete triggered");
+              logger?.debug("onSearchEditingComplete triggered", source: 'HomePage');
               final query = _searchController.text;
               if (query.isNotEmpty) {
                 context.read<SearchBloc>().add(PerformSearch(query));
@@ -130,7 +133,7 @@ class _HomePageState extends State<HomePage> {
             controller: pageController,
             children: tabs,
             onPageChanged: (value) {
-              logger?.debug("HomePage: page changed to $value");
+              logger?.debug("page changed to $value", source: 'HomePage');
               setState(() {
                 currentPageIndex = value;
                 currentPath = routes.keys.toList().elementAt(currentPageIndex);

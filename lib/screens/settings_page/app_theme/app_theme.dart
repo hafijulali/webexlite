@@ -32,7 +32,7 @@ ListTile appTheme(BuildContext context) {
         hintText: appThemeMode.toString(),
         dropdownMenuEntries: _dropdownMenuEntries(),
         onSelected: (value) {
-                          logger?.debug("Settings: app theme changed to $value");          appThemeMode = value;
+                          logger?.debug("app theme changed to $value", source: 'AppTheme');          appThemeMode = value;
           settingsDatabase!.put(Constants().appThemeSettingsKey, appThemeMode);
         },
       ),

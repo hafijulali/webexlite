@@ -13,7 +13,7 @@ OverlayEntry? _overlayEntry;
 OverlayEntry? _sendMessagesOverlayEntry;
 
 void _closeOverlay(BuildContext context) {
-  logger?.log('closing overlay');
+  logger?.log('closing overlay', source: 'OverlayWidget');
   _overlayEntry?.remove();
   _overlayEntry = null;
 }
@@ -84,7 +84,7 @@ class _ImageOverlayContentState extends State<ImageOverlayContent> {
         return imageData;
       }
     } catch (e) {
-      logger?.error('Error fetching image from $url: $e');
+      logger?.error('Error fetching image from $url: $e', source: 'OverlayWidget');
     }
     return null;
   }
@@ -166,8 +166,7 @@ void openSendMessagesOverlay(BuildContext context, String roomId) async {
 }
 
 void _closeSendMessagesOverlay() {
-  logger?.log('closing send messages overlay');
-  _sendMessagesOverlayEntry?.remove();
+          logger?.log('closing send messages overlay', source: 'OverlayWidget');  _sendMessagesOverlayEntry?.remove();
   _sendMessagesOverlayEntry = null;
 }
 
@@ -201,11 +200,11 @@ class _SendMessagesOverlayState extends State<SendMessagesOverlay> {
       if (room != null) {
         setState(() {
           _roomDisplayName = room['displayName'];
-          logger?.log('');
+      
         });
       }
     } catch (e) {
-      logger?.log('Error fetching room details: $e');
+      logger?.log('Error fetching room details: $e', source: 'OverlayWidget');
     }
   }
 
@@ -231,7 +230,7 @@ class _SendMessagesOverlayState extends State<SendMessagesOverlay> {
       messageContentController.text = ''; // Clear field after sending
       _closeSendMessagesOverlay();
     } on Exception catch (e) {
-      logger?.log(e.toString());
+      logger?.log(e.toString(), source: 'OverlayWidget');
       PackerSnackBar(content: 'Failed to send message').show();
     }
   }

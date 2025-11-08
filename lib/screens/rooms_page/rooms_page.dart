@@ -77,7 +77,7 @@ class _RoomsPageState extends State<RoomsPage> {
                           "Do you want to block this chat?");
                       if (result == Constants().ok) {
                         bloc.add(BlockRoom(room.id));
-                        logger?.debug("Blocked");
+                        logger?.debug("Blocked", source: 'RoomsPage');
                       }
                     },
                     onTap: () {

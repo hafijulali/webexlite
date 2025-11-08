@@ -23,7 +23,7 @@ import 'screens/messages_page/messages_page.dart';
 import 'screens/messages_page/send_messages_page.dart';
 import 'screens/rooms_page/rooms_page.dart';
 import 'screens/settings_page/settings_page.dart';
-import 'screens/search_page/search_page.dart';
+
 
 Map<String, dynamic>? config;
 Box? roomsDatabase;
@@ -37,6 +37,9 @@ Box<dynamic>? blockDatabase;
 // As of 2025 there is no stable cross-paltform solution to securely store data.
 // Flutter Secure Storage doesn't work well on Web, which is a deal-breaker.
 // Web version of this app is hosted publicly, and needs secure way to login and access data.
+
+
+
 Box<dynamic>? secureDatabase;
 String? roomsDatabaseFilePath;
 String? messagesDatabaseFilePath;
@@ -100,18 +103,20 @@ Future<void> _initConfig() async {
 }
 
 Future<void> _initDatabase() async {
-  logger?.debug('initDatabase: start');
+  logger?.debug('start', source: 'initDatabase');
   if (kIsWeb) {
     Hive.initFlutter(Constants().appName);
     logger?.debug(
-        'initDatabase: Hive initialized for web with ${Constants().appName}');
+        'Hive initialized for web with ${Constants().appName}',
+        source: 'initDatabase');
   } else {
     final databaseFilePath = kReleaseMode
         ? (await getApplicationDocumentsDirectory()).path
         : (await getTemporaryDirectory()).path;
     Hive.init(databaseFilePath);
     logger?.debug(
-        'initDatabase: Hive initialized for non-web with path: $databaseFilePath');
+        'Hive initialized for non-web with path: $databaseFilePath',
+        source: 'initDatabase');
   }
 
   try {
@@ -119,9 +124,10 @@ Future<void> _initDatabase() async {
       Constants().settingsDatabaseFileName,
     );
     logger?.debug(
-        'initDatabase: settingsDatabase opened successfully. Is null: ${settingsDatabase == null}');
+        'settingsDatabase opened successfully. Is null: ${settingsDatabase == null}',
+        source: 'initDatabase');
   } catch (e) {
-    logger?.error('initDatabase: Error opening settingsDatabase: $e');
+    logger?.error('Error opening settingsDatabase: $e', source: 'initDatabase');
     settingsDatabase = null;
   }
 
@@ -130,7 +136,7 @@ Future<void> _initDatabase() async {
       Constants().blockDatabaseFileName,
     );
   } catch (e) {
-    logger?.error('Error opening blockDatabase: $e');
+    logger?.error('Error opening blockDatabase: $e', source: 'initDatabase');
     blockDatabase = null;
   }
 
@@ -139,7 +145,7 @@ Future<void> _initDatabase() async {
       Constants().personDatabaseFileName,
     );
   } catch (e) {
-    logger?.error('Error opening personDatabase: $e');
+    logger?.error('Error opening personDatabase: $e', source: 'initDatabase');
     personDatabase = null;
   }
 
@@ -148,7 +154,7 @@ Future<void> _initDatabase() async {
       Constants().searchDatabaseFileName,
     );
   } catch (e) {
-    logger?.error('Error opening searchDatabase: $e');
+    logger?.error('Error opening searchDatabase: $e', source: 'initDatabase');
     searchDatabase = null;
   }
 
@@ -157,7 +163,7 @@ Future<void> _initDatabase() async {
       Constants().roomsDatabaseFileName,
     );
   } catch (e) {
-    logger?.error('Error opening roomsDatabase: $e');
+    logger?.error('Error opening roomsDatabase: $e', source: 'initDatabase');
     roomsDatabase = null;
   }
 
@@ -166,7 +172,7 @@ Future<void> _initDatabase() async {
       Constants().messagesDatabaseFileName,
     );
   } catch (e) {
-    logger?.error('Error opening messagesDatabase: $e');
+    logger?.error('Error opening messagesDatabase: $e', source: 'initDatabase');
     messagesDatabase = null;
   }
 
@@ -175,14 +181,14 @@ Future<void> _initDatabase() async {
       Constants().meetingsDatabaseFileName,
     );
   } catch (e) {
-    logger?.error('Error opening meetingsDatabase: $e');
+    logger?.error('Error opening meetingsDatabase: $e', source: 'initDatabase');
     meetingsDatabase = null;
   }
 
   try {
     await Hive.openBox<dynamic>('webexlite');
   } catch (e) {
-    logger?.error('Error opening webexlite Hive box: $e');
+    logger?.error('Error opening webexlite Hive box: $e', source: 'initDatabase');
   }
 
   roomsDatabaseFilePath = roomsDatabase?.path.toString();
@@ -200,41 +206,42 @@ Future<void> initApp() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _initConfig();
   logger = PackerLoggerFactory.create(LoggingBackend.file);
-  logger?.debug("initApp: start");
+  logger?.debug("start", source: 'initApp');
   await dotenv.load(fileName: ".env");
-  logger?.debug("initApp: dotenv loaded");
+  logger?.debug("dotenv loaded", source: 'initApp');
   await _initDatabase(); // Call _initDatabase first
-  logger?.debug("initApp: database initialized");
+  logger?.debug("database initialized", source: 'initApp');
   await initServices();
-  logger?.debug("initApp: services initialized");
+  logger?.debug("services initialized", source: 'initApp');
   await _initCloud();
-  logger?.debug("initApp: cloud initialized");
+  logger?.debug("cloud initialized", source: 'initApp');
 }
 
 Future<void> _initCloud() async {}
 
 Future<WebexApis?> initServices() async {
-  logger?.debug('initServices: start');
+  logger?.debug('start', source: 'initServices');
   logger?.debug(
-      'initServices: settingsDatabase is null: ${settingsDatabase == null}');
+      'settingsDatabase is null: ${settingsDatabase == null}',
+      source: 'initServices');
   if (settingsDatabase != null) {
     logger?.debug(
-        'initServices: settingsDatabase contains tokenSettingsKey: ${settingsDatabase!.containsKey(Constants().tokenSettingsKey)}');
-  }
+          'settingsDatabase contains tokenSettingsKey: ${settingsDatabase!.containsKey(Constants().tokenSettingsKey)}',
+          source: 'initServices');  }
   logger?.debug(
-      'initServices: Retrieving token with key: ${Constants().tokenSettingsKey}');
+      'Retrieving token with key: ${Constants().tokenSettingsKey}',
+      source: 'initServices');
   final storedToken = settingsDatabase?.get(Constants().tokenSettingsKey);
-  logger?.debug('initServices: storedToken (raw): $storedToken');
+  logger?.debug('storedToken (raw): $storedToken', source: 'initServices');
   if (storedToken != null) {
     try {
       token = Token.fromStorage(Map<String, dynamic>.from(storedToken));
       accessToken = token!.accessToken; // Initialize accessToken here
-      logger?.debug('initServices: token loaded from storage successfully');
+      logger?.debug('token loaded from storage successfully', source: 'initServices');
     } catch (e) {
-      logger?.error("initServices: Failed to load token from storage: $e");
+      logger?.error("Failed to load token from storage: $e", source: 'initServices');
       await settingsDatabase?.delete(Constants().tokenSettingsKey);
-      logger
-          ?.debug('initServices: tokenSettingsKey deleted from settingsDatabase');
+      logger?.debug('tokenSettingsKey deleted from settingsDatabase', source: 'initServices');
     }
   }
 
@@ -249,12 +256,12 @@ Future<WebexApis?> initServices() async {
           await settingsDatabase?.put(
               Constants().tokenSettingsKey, newToken.toJson());
         });
-    logger?.debug("initServices: webexApisInstance created: $webexApisInstance");
+    logger?.debug("webexApisInstance created: $webexApisInstance", source: 'initServices');
     tz_latest.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
     return webexApisInstance;
   }
-  logger?.debug("initServices: token is null, returning null WebexApis");
+  logger?.debug("token is null, returning null WebexApis", source: 'initServices');
 
   tz_latest.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));

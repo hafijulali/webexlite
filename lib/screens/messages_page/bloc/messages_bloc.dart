@@ -1,4 +1,4 @@
-import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:webexapis/webexapis.dart';
@@ -16,9 +16,10 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
       emit(MessagesLoading());
 
       if (!event.forceRefresh) {
-        // Debug print: Attempting to load messages from cache
+
         logger?.debug(
-            'MessagesBloc: Attempting to load messages from cache for room ${event.roomId}...');
+            'Attempting to load messages from cache for room ${event.roomId}...',
+            source: 'MessagesBloc');
         try {
           final cachedItems = messagesDatabase?.get(event.roomId);
           if (cachedItems != null) {
@@ -28,8 +29,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
                     return Message.fromJson(Map<String, dynamic>.from(item));
                   } catch (e, st) {
                     logger?.error(
-                      'MessagesBloc: Error parsing cached message',
-                      source: 'MessagesBloc',
+                                      'Error parsing cached message',
+                                      source: 'MessagesBloc',
                       stackTrace: st,
                       extra: {'json_data': item, 'room_id': event.roomId},
                       tags: {'parsing_context': 'cached_message'},
@@ -43,8 +44,10 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
             return;
           }
         } catch (e, st) {
-          logger?.error('MessagesBloc: Failed to load messages from cache',
-              stackTrace: st, extra: {'room_id': event.roomId});
+          logger?.error('Failed to load messages from cache',
+            source: 'MessagesBloc',
+            stackTrace: st,
+            extra: {'room_id': event.roomId});
         }
       }
 
@@ -58,7 +61,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
                   return Message.fromJson(item as Map<String, dynamic>);
                 } catch (e, st) {
                   logger?.error(
-                    'MessagesBloc: Error parsing API message',
+                                    'Error parsing API message',
+                                    source: 'MessagesBloc',
                     stackTrace: st,
                     extra: {'json_data': item},
                     tags: {'parsing_context': 'api_message'},
@@ -79,8 +83,10 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
         }
       } catch (e, st) {
         if (state is! MessagesLoaded) {
-          logger?.error('MessagesBloc: Error during API call',
-              stackTrace: st, extra: {'room_id': event.roomId});
+          logger?.error('Error during API call',
+            source: 'MessagesBloc',
+            stackTrace: st,
+            extra: {'room_id': event.roomId});
           emit(MessagesError(e.toString()));
         }
       }
