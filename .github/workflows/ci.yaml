@@ -1,0 +1,233 @@
+name: CI pipeline for flutter
+
+on:
+  push:
+    tags:
+      - v**
+
+jobs:
+  setup:
+    name: Setup Flutter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        id: flutter-action
+        with:
+          architecture: x64
+          channel: stable
+          cache: true
+      - run: |
+          git config --global --add safe.directory /opt/hostedtoolcache/flutter/${{ steps.flutter-action.outputs.CHANNEL }}-${{ steps.flutter-action.outputs.VERSION }}-${{ steps.flutter-action.outputs.ARCHITECTURE }}
+          flutter --version
+
+      - name: Get App Name and Version
+        id: get_app_info
+        run: |
+          APP_NAME=$(grep '^name:' pubspec.yaml | head -1 | awk '{print $2}')
+          APP_VERSION=$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+  build_android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: setup
+    outputs:
+      apk_path_arm64: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+      apk_path_armeabi: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+      apk_path_x86_64: build/app/outputs/flutter-apk/app-x86_64-release.apk
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+          cache: true
+
+      - name: Ensure secrets
+        shell: bash
+        env:
+          ENV: ${{ secrets.ENV }}
+        run: |
+          cat << EOF > android/key.properties
+          ${{ secrets.ENV }}
+          EOF
+          echo "$KEYSTORE_FILE_BASE64" | base64 -d > android/android-prod.keystore
+
+      - name: Build APK
+        run: flutter build apk --release --obfuscate --split-per-abi --split-debug-info .debug
+
+      - name: Rename and Upload Android Builds
+        run: |
+          APP_NAME="${{ needs.setup.outputs.app_name }}"
+          APP_VERSION="${{ needs.setup.outputs.app_version }}"
+          mkdir -p artifacts
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk artifacts/${APP_NAME}-${APP_VERSION}-android-arm64.apk
+          mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk artifacts/${APP_NAME}-${APP_VERSION}-android-armeabi-v7a.apk
+          mv build/app/outputs/flutter-apk/app-x86_64-release.apk artifacts/${APP_NAME}-${APP_VERSION}-android-x86_64.apk
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: artifacts/
+
+  build_ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: setup
+    outputs:
+      ipa_path: build/ios/ipa/*.ipa
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+          cache: true
+
+      - name: Install CocoaPods Dependencies
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: Build iOS (No Code Signing)
+        run: flutter build ios --release --no-codesign
+
+      - name: Rename and Upload iOS Build
+        run: |
+          APP_NAME="${{ needs.setup.outputs.app_name }}"
+          APP_VERSION="${{ needs.setup.outputs.app_version }}"
+          mkdir -p artifacts
+          # Find the generated .app file and rename it
+          find build/ios/Runner.app -maxdepth 0 -exec mv {} artifacts/${APP_NAME}-${APP_VERSION}-ios.app \;
+      - name: Upload iOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: artifacts/
+
+  build_linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    needs: setup
+    outputs:
+      linux_path: build/linux/x64/release/bundle
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+          cache: true
+
+      - name: Build Linux
+        run: flutter build linux --release
+
+      - name: Rename and Upload Linux Build
+        run: |
+          APP_NAME="${{ needs.setup.outputs.app_name }}"
+          APP_VERSION="${{ needs.setup.outputs.app_version }}"
+          mkdir -p artifacts
+          mv build/linux/x64/release/bundle artifacts/${APP_NAME}-${APP_VERSION}-linux-x64
+      - name: Upload Linux Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: artifacts/
+
+  build_macos:
+    name: Build macOS
+    runs-on: macos-latest
+    needs: setup
+    outputs:
+      macos_path: build/macos/Build/Products/Release
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+          cache: true
+
+      - name: Build macOS
+        run: flutter build macos --release
+
+      - name: Rename and Upload macOS Build
+        run: |
+          APP_NAME="${{ needs.setup.outputs.app_name }}"
+          APP_VERSION="${{ needs.setup.outputs.app_version }}"
+          mkdir -p artifacts
+          mv build/macos/Build/Products/Release/${APP_NAME}.app artifacts/${APP_NAME}-${APP_VERSION}-macos.app
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: artifacts/
+
+  build_windows:
+    name: Build Windows
+    runs-on: windows-latest
+    needs: setup
+    outputs:
+      windows_path: build/windows/x64/runner/Release
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+          cache: true
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Rename and Upload Windows Build
+        run: |
+          APP_NAME="${{ needs.setup.outputs.app_name }}"
+          APP_VERSION="${{ needs.setup.outputs.app_version }}"
+          mkdir -p artifacts
+          mv build/windows/x64/runner/Release artifacts/${APP_NAME}-${APP_VERSION}-windows-x64
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: artifacts/
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build_android, build_ios, build_linux, build_macos, build_windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
