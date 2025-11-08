@@ -50,18 +50,21 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
           cache: true
 
       - name: Ensure secrets
         shell: bash
         env:
-          ENV: ${{ secrets.ENV }}
+          KEY: ${{ secrets.KEY }}
+          PROP: ${{ secrets.PROP }}
         run: |
           cat << EOF > android/key.properties
-          ${{ secrets.ENV }}
+          ${{ secrets.PROP }}
           EOF
-          echo "$KEYSTORE_FILE_BASE64" | base64 -d > android/android-prod.keystore
+
+          cat << EOF | base64 -d > android/android-prod.keystore
+          ${{ secrets.KEY }}
+          EOF
 
       - name: Build APK
         run: flutter build apk --release --obfuscate --split-per-abi --split-debug-info .debug
@@ -93,7 +96,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
           cache: true
 
       - name: Install CocoaPods Dependencies
@@ -131,7 +133,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
           cache: true
 
       - name: Build Linux
@@ -162,7 +163,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
           cache: true
 
       - name: Build macOS
@@ -193,7 +193,6 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
           cache: true
 
       - name: Build Windows
