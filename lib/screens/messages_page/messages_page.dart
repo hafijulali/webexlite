@@ -46,19 +46,21 @@ class MessagesPage extends StatefulWidget {
 class _MessagesPageState extends State<MessagesPage> {
   Future<String> _getPersonDisplayName(String? personEmail) async {
     logger?.debug(
-        'MessagesPage: _getPersonDisplayName called for email: $personEmail');
+        '_getPersonDisplayName called for email: $personEmail',
+        source: 'MessagesPage');
     if (personEmail == null || personEmail.isEmpty) {
       return "Unknown";
     }
 
-    // Check Hive cache first
+
     if (personDatabase != null && personDatabase!.containsKey(personEmail)) {
       final cachedPersonJson = personDatabase!.get(personEmail);
       if (cachedPersonJson != null) {
         final cachedPerson =
             Person.fromJson(Map<String, dynamic>.from(cachedPersonJson));
         logger?.debug(
-            'MessagesPage: Person found in cache: ${cachedPerson.displayName}');
+            'Person found in cache: ${cachedPerson.displayName}',
+            source: 'MessagesPage');
         return cachedPerson.displayName ?? personEmail;
       }
     }
@@ -67,16 +69,18 @@ class _MessagesPageState extends State<MessagesPage> {
           final webexApis = context.read<WebexApis>();
           final response = await webexApis.getPeople(email: personEmail);
           logger?.debug(
-              'MessagesPage: getPeople API response for $personEmail: $response');      if (response['items'] != null && (response['items'] as List).isNotEmpty) {
+              'getPeople API response for $personEmail: $response',
+              source: 'MessagesPage');      if (response['items'] != null && (response['items'] as List).isNotEmpty) {
         final person = Person.fromJson(response['items'][0]);
-        // Store in Hive cache
+    
         await personDatabase?.put(personEmail, person.toJson());
         logger?.debug(
-            'MessagesPage: Person fetched from API and cached: ${person.displayName}');
+            'Person fetched from API and cached: ${person.displayName}',
+            source: 'MessagesPage');
         return person.displayName ?? personEmail;
       }
     } catch (e) {
-      logger?.error('Error fetching person details for $personEmail: $e');
+      logger?.error('Error fetching person details for $personEmail: $e', source: 'MessagesPage');
     }
     return personEmail;
   }
@@ -93,7 +97,8 @@ class _MessagesPageState extends State<MessagesPage> {
         "${Constants().messagesPageRoute} ${widget.roomTitle}";
 
     logger?.debug(
-        "Building room: ${widget.roomTitle} roomType: ${widget.roomType} roomId: ${widget.roomId}");
+        "Building room: ${widget.roomTitle} roomType: ${widget.roomType} roomId: ${widget.roomId}",
+        source: 'MessagesPage');
 
     return Builder(builder: (context) {
       return Scaffold(
@@ -136,7 +141,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   ),
                 );
               }
-              logger?.debug('messages loaded: ${state.messages.length}');
+              logger?.debug('messages loaded: ${state.messages.length}', source: 'MessagesPage');
 
               return PackerList<Message>.lazy(
                 separatorBuilder: (_, __) => const Divider(height: 1),

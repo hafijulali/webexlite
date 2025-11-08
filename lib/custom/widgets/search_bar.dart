@@ -24,7 +24,7 @@ class SearchBarWidget extends StatefulWidget {
 class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   Widget build(BuildContext context) {
-    logger?.debug("SearchBarWidget: Building");
+    logger?.debug("Building", source: 'SearchBarWidget');
     return BlocBuilder<SearchBloc, SearchState>(
       builder: (context, state) {
         return Container(
@@ -38,7 +38,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             child: TextField(
               textAlign: TextAlign.center,
               onEditingComplete: () {
-                logger?.debug("SearchBarWidget: onEditingComplete triggered");
+                logger?.debug("onEditingComplete triggered", source: 'SearchBarWidget');
                 context
                     .read<SearchBloc>()
                     .add(PerformSearch(widget.searchTextController.text));

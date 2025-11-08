@@ -1,4 +1,4 @@
-import 'dart:async';
+
 
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,8 +16,8 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
       emit(RoomsLoading());
 
       if (!event.forceRefresh) {
-        // Debug print: Attempting to load rooms from cache
-        logger?.debug('RoomsBloc: Attempting to load rooms from cache...');
+    
+        logger?.debug('Attempting to load rooms from cache...', source: 'RoomsBloc');
         try {
           final cachedRoomsJson = roomsDatabase?.get('rooms');
           if (cachedRoomsJson != null) {
@@ -26,7 +26,8 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
                 return Room.fromJson(Map<String, dynamic>.from(item));
               } catch (e, st) {
                 logger?.error(
-                  'RoomsBloc: Error parsing cached room',
+                  'Error parsing cached room',
+                  source: 'RoomsBloc',
                   stackTrace: st,
                   extra: {'json_data': item},
                   tags: {'parsing_context': 'cached_room'},
@@ -38,7 +39,7 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
             return;
           }
         } catch (e, st) {
-          logger?.error('RoomsBloc: Failed to load rooms from cache', stackTrace: st);
+          logger?.error('Failed to load rooms from cache', source: 'RoomsBloc', stackTrace: st);
         }
       }
 
@@ -50,8 +51,8 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
               return Room.fromJson(item as Map<String, dynamic>);
             } catch (e, st) {
               logger?.error(
-                'RoomsBloc: Error parsing API room',
-                stackTrace: st,
+                                'Error parsing API room',
+                                source: 'RoomsBloc',                stackTrace: st,
                 extra: {'json_data': item},
                 tags: {'parsing_context': 'api_room'},
               );
@@ -67,7 +68,7 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
         }
       } catch (e, st) {
         if (state is! RoomsLoaded) {
-          logger?.error('RoomsBloc: Error during API call', stackTrace: st, extra: {'error': e.toString()});
+          logger?.error('Error during API call', source: 'RoomsBloc', stackTrace: st, extra: {'error': e.toString()});
           emit(RoomsError(e.toString()));
         }
       }

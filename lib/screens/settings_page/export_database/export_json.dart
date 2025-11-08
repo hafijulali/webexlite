@@ -15,17 +15,17 @@ ListTile exportToJson(BuildContext context) {
 }
 
 Future<void> _export(BuildContext context) async {
-  logger?.debug("Settings: exporting to json");
+  logger?.debug("exporting to json", source: 'ExportJson');
   final String? exportDirectory = await FilePicker.platform.getDirectoryPath();
   List<Map<String, dynamic>> history = List.empty(growable: true);
 
   roomsDatabase?.toMap().forEach((k, v) {
-    // history.add(v.toJson());
+
   });
 
   File jsonFile =
       File('${exportDirectory!}/${Constants().roomsDatabaseFileName}.json');
 
   jsonFile.writeAsStringSync(history.toString());
-  logger?.debug("Settings: exported to ${jsonFile.path}");
+  logger?.debug("exported to ${jsonFile.path}", source: 'ExportJson');
 }

@@ -15,7 +15,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(SearchLoading());
       try {
         final response = await webexApis.search(query: event.query);
-        logger?.debug('SearchBloc: API search response: $response');
+        logger?.debug('API search response: $response', source: 'SearchBloc');
         if (response['items'] != null) {
           final results = (response['items'] as List<dynamic>?)
               ?.whereType<Map<String, dynamic>>()
@@ -23,30 +23,29 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
             try {
               return SearchResult.fromJson(item);
             } catch (e, st) {
-              logger?.error(
-                'SearchBloc: Error parsing API search result',
-                stackTrace: st,
-                extra: {'json_data': item, 'query': event.query},
-                tags: {'parsing_context': 'api_search_result'},
+logger?.error(
+                'Error parsing search result',
+                source: 'SearchBloc',
               );
               return null;
             }
           }).whereType<SearchResult>().toList() ?? [];
-          logger?.debug('SearchBloc: Mapped results count: ${results.length}');
-          // Save search query to history
+          logger?.debug('Mapped results count: ${results.length}', source: 'SearchBloc');
+      
           await searchDatabase?.put(event.query, true);
           final recentSearches =
               searchDatabase?.keys.cast<String>().toList() ?? [];
-          logger?.debug(
-              'SearchBloc: Emitting SearchLoaded with results and recent searches.');
+logger?.debug(
+            'Failed to load recent searches from cache',
+            source: 'SearchBloc');
           emit(SearchLoaded(results: results, recentSearches: recentSearches));
         } else {
           logger?.debug(
-              'SearchBloc: API search response has no items. Emitting SearchError.');
+              'API search response has no items. Emitting SearchError.', source: 'SearchBloc');
           emit(SearchError(response['message'] ?? 'Failed to perform search.'));
         }
       } catch (e) {
-      logger?.error('SearchBloc: Error during API call: $e');
+      logger?.error('Error during API call: $e', source: 'SearchBloc');
         emit(SearchError(e.toString()));
       }
     });

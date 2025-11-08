@@ -16,7 +16,7 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
   MeetingsBloc({required this.webexApis}) : super(MeetingsInitial()) {
     final cacheExpiryTime = settingsDatabase?.get(Constants().cacheExpiryTimeSettingsKey, defaultValue: 60) ?? 60;
     _timer = Timer.periodic(Duration(minutes: cacheExpiryTime), (timer) {
-      logger?.debug('MeetingsBloc: Cache expired, forcing refresh');
+      logger?.debug('Cache expired, forcing refresh', source: 'MeetingsBloc');
       add(const LoadMeetings(forceRefresh: true));
     });
 
@@ -32,7 +32,8 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
                 return Meeting.fromJson(Map<String, dynamic>.from(item));
               } catch (e, st) {
                 logger?.error(
-                  'MeetingsBloc: Error parsing cached meeting',
+                  'Error parsing cached meeting',
+                  source: 'MeetingsBloc',
                   stackTrace: st,
                   extra: {'json_data': item},
                   tags: {'parsing_context': 'cached_meeting'},
@@ -44,7 +45,7 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
             return;
           }
         } catch (e, st) {
-          logger?.error('MeetingsBloc: Failed to load meetings from cache', stackTrace: st);
+          logger?.error('Failed to load meetings from cache', source: 'MeetingsBloc', stackTrace: st);
         }
       }
 
@@ -55,9 +56,9 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
             try {
               return Meeting.fromJson(item as Map<String, dynamic>);
             } catch (e, st) {
-              logger?.error(
-                'MeetingsBloc: Error parsing API meeting',
-                stackTrace: st,
+                              logger?.error(
+                                'Error parsing API meeting',
+                                source: 'MeetingsBloc',                stackTrace: st,
                 extra: {'json_data': item},
                 tags: {'parsing_context': 'api_meeting'},
               );
@@ -71,7 +72,7 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
               response['message'] as String? ?? 'Failed to load meetings.'));
         }
       } catch (e, st) {
-        logger?.error('MeetingsBloc: Error during API call', stackTrace: st);
+        logger?.error('Error during API call', source: 'MeetingsBloc', stackTrace: st);
         emit(MeetingsError(e.toString()));
       }
     });

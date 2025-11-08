@@ -175,3 +175,7 @@ logs*
 .un*
 .**
 kls_database.*
+
+# Android specific files
+key.properties
+android-prod.keystore

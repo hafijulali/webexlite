@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:packer/logging/file_logger.dart';
 import 'log_viewer_page.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:packer/utils/package_utils.dart';
 import 'package:packer/widgets/app_bar.dart';
 import 'package:packer/widgets/snack_bar.dart';
@@ -13,10 +14,10 @@ import '../../../init.dart';
 import '../../core/constants/constants.dart';
 import '../../custom/widgets/app_bar.dart';
 import 'app_theme/app_theme.dart';
-import 'auth/auth.dart';
+
 import 'export_database/export_database.dart';
 import 'export_database/export_json.dart';
-import 'font_size/font_size.dart';
+
 import 'import_database/import_database.dart';
 import 'items_limit/items_limit.dart';
 import 'landing_page/landing_page.dart';
@@ -38,7 +39,7 @@ class _SettingsPageState extends State<SettingsPage> {
       subtitle: const Text('Use overlay for sending messages instead of a new page'),
       value: _useMessageOverlay,
       onChanged: (bool value) {
-        logger?.debug("SettingsPage: toggling Message Overlay to $value");
+        logger?.debug("toggling Message Overlay to $value", source: 'SettingsPage');
         setState(() {
           _useMessageOverlay = value;
           settingsDatabase?.put(Constants().messageOverlaySettingsKey, value);
@@ -91,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
           dropdownMenuEntries: dropdownMenuEntries(),
           onSelected: (value) {
             if (value != null) {
-              logger?.debug("SettingsPage: setting cache expiry time to $value minutes");
+              logger?.debug("setting cache expiry time to $value minutes", source: 'SettingsPage');
               setState(() {
                 _cacheExpiryTime = value;
                 settingsDatabase?.put(Constants().cacheExpiryTimeSettingsKey, value);
@@ -108,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Use Material 3'),
       value: useMaterial3,
       onChanged: (bool value) {
-        logger?.debug("SettingsPage: toggling Material3 to $value");
+        logger?.debug("toggling Material3 to $value", source: 'SettingsPage');
         setState(() {
           settingsDatabase!.put(Constants().material3SettingsKey, value);
           useMaterial3 = value;
@@ -128,10 +129,10 @@ class _SettingsPageState extends State<SettingsPage> {
           enableDebug = value;
         });
         if (enableDebug) {
-          logger?.log("Debug logs enabled");
+          logger?.log("Debug logs enabled", source: 'SettingsPage');
           context.read<WebexApis>().apiClient.enableDebugLogs();
         } else {
-          logger?.log("Debug logs disabled");
+          logger?.log("Debug logs disabled", source: 'SettingsPage');
           context.read<WebexApis>().apiClient.disableDebugLogs();
         }
       },
@@ -144,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Show subtitle in list items'),
       value: showSubtitle,
       onChanged: (bool value) {
-        logger?.debug("SettingsPage: toggling showSubtitle to $value");
+        logger?.debug("toggling showSubtitle to $value", source: 'SettingsPage');
         setState(() {
           showSubtitle = value;
           settingsDatabase?.put(Constants().showSubtitleKey, value);
@@ -167,11 +168,45 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: const Icon(Icons.logout),
       title: const Text('Sign Out'),
       onTap: () async {
-        logger?.debug("SettingsPage: signing out");
-        await context.read<WebexApis>().signOut();
-        await settingsDatabase?.delete(Constants().tokenSettingsKey);
-        if (context.mounted) {
-          _navigateToLogin(context);
+        logger?.debug("signing out", source: 'SettingsPage');
+        final bool confirmSignOut = await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm Sign Out'),
+                  content: const Text(
+                      'Signing out will wipe all local data. Are you sure you want to continue?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Sign Out'),
+                    ),
+                  ],
+                );
+              },
+            ) ??
+            false;
+
+        if (confirmSignOut) {
+          logger?.debug("User confirmed sign out. Clearing Hive boxes.", source: 'SettingsPage');
+          await settingsDatabase?.clear();
+          await blockDatabase?.clear();
+          await personDatabase?.clear();
+          await searchDatabase?.clear();
+          await roomsDatabase?.clear();
+          await messagesDatabase?.clear();
+          await meetingsDatabase?.clear();
+          await Hive.openBox<dynamic>('webexlite').then((box) => box.clear());
+
+          await context.read<WebexApis>().signOut();
+          await settingsDatabase?.delete(Constants().tokenSettingsKey);
+          if (context.mounted) {
+            _navigateToLogin(context);
+          }
         }
       },
     );
@@ -182,7 +217,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: const Icon(Icons.mobile_friendly_outlined),
       title: Text('App Version : $appVersion'),
       onTap: () async {
-        logger?.debug("SettingsPage: opening app codebase url");
+        logger?.debug("opening app codebase url", source: 'SettingsPage');
         await launchUrlString(Constants().appCodebase);
       },
     );
@@ -191,7 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    logger?.debug("SettingsPage: initState");
+    logger?.debug("initState", source: 'SettingsPage');
     getAppVersion()
         .then((String version) => setState(() => appVersion = version));
     _useMessageOverlay = settingsDatabase?.get(Constants().messageOverlaySettingsKey) ?? false;
@@ -252,9 +287,9 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 16),
       landingPage(context),
       const SizedBox(height: 16),
-      changeFontSize(context),
-      const SizedBox(height: 16),
       _enableDebugLogs(context),
+      const SizedBox(height: 16),
+      _showSubtitle(context),
       const SizedBox(height: 16),
       const Divider(),
       const SizedBox(height: 16),
@@ -275,7 +310,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     currentPath = Constants().settingsPageRoute;
-    logger?.debug("Building SettingsPage");
+    logger?.debug("Building", source: 'SettingsPage');
     return Scaffold(
       appBar: PackerAppBar(
         actions: actions(context),
