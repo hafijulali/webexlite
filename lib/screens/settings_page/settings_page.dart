@@ -38,7 +38,7 @@ class _SettingsPageState extends State<SettingsPage> {
       subtitle: const Text('Use overlay for sending messages instead of a new page'),
       value: _useMessageOverlay,
       onChanged: (bool value) {
-        logger?.log("SettingsPage: toggling Message Overlay to $value");
+        logger?.debug("SettingsPage: toggling Message Overlay to $value");
         setState(() {
           _useMessageOverlay = value;
           settingsDatabase?.put(Constants().messageOverlaySettingsKey, value);
@@ -91,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
           dropdownMenuEntries: dropdownMenuEntries(),
           onSelected: (value) {
             if (value != null) {
-              logger?.log("SettingsPage: setting cache expiry time to $value minutes");
+              logger?.debug("SettingsPage: setting cache expiry time to $value minutes");
               setState(() {
                 _cacheExpiryTime = value;
                 settingsDatabase?.put(Constants().cacheExpiryTimeSettingsKey, value);
@@ -108,7 +108,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Use Material 3'),
       value: useMaterial3,
       onChanged: (bool value) {
-        logger?.log("SettingsPage: toggling Material3 to $value");
+        logger?.debug("SettingsPage: toggling Material3 to $value");
         setState(() {
           settingsDatabase!.put(Constants().material3SettingsKey, value);
           useMaterial3 = value;
@@ -144,7 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
       title: const Text('Show subtitle in list items'),
       value: showSubtitle,
       onChanged: (bool value) {
-        logger?.log("SettingsPage: toggling showSubtitle to $value");
+        logger?.debug("SettingsPage: toggling showSubtitle to $value");
         setState(() {
           showSubtitle = value;
           settingsDatabase?.put(Constants().showSubtitleKey, value);
@@ -167,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: const Icon(Icons.logout),
       title: const Text('Sign Out'),
       onTap: () async {
-        logger?.log("SettingsPage: signing out");
+        logger?.debug("SettingsPage: signing out");
         await context.read<WebexApis>().signOut();
         await settingsDatabase?.delete(Constants().tokenSettingsKey);
         if (context.mounted) {
@@ -182,7 +182,7 @@ class _SettingsPageState extends State<SettingsPage> {
       leading: const Icon(Icons.mobile_friendly_outlined),
       title: Text('App Version : $appVersion'),
       onTap: () async {
-        logger?.log("SettingsPage: opening app codebase url");
+        logger?.debug("SettingsPage: opening app codebase url");
         await launchUrlString(Constants().appCodebase);
       },
     );
@@ -191,7 +191,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    logger?.log("SettingsPage: initState");
+    logger?.debug("SettingsPage: initState");
     getAppVersion()
         .then((String version) => setState(() => appVersion = version));
     _useMessageOverlay = settingsDatabase?.get(Constants().messageOverlaySettingsKey) ?? false;
@@ -201,7 +201,10 @@ class _SettingsPageState extends State<SettingsPage> {
   ListTile _viewLogs(BuildContext context) {
     return ListTile(
       leading: const Icon(Icons.plagiarism_outlined),
-      title: const Text('View Logs'),
+      title: const Text(
+        'View Logs',
+        style: TextStyle(fontFamily: 'RobotoMono'),
+      ),
       onTap: () {
         if (logger is FileLogger) {
           Navigator.push(
@@ -235,8 +238,6 @@ class _SettingsPageState extends State<SettingsPage> {
       const SizedBox(height: 16),
       _useMaterial3(context),
       const SizedBox(height: 16),
-      _showSubtitle(context),
-      const SizedBox(height: 16),
       _useMessageOverlaySwitchTile(context),
       const SizedBox(height: 16),
       maxItemsLimit(context),
@@ -252,8 +253,6 @@ class _SettingsPageState extends State<SettingsPage> {
       landingPage(context),
       const SizedBox(height: 16),
       changeFontSize(context),
-      const SizedBox(height: 16),
-      auth(context),
       const SizedBox(height: 16),
       _enableDebugLogs(context),
       const SizedBox(height: 16),
@@ -276,7 +275,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     currentPath = Constants().settingsPageRoute;
-    logger?.log("Building SettingsPage");
+    logger?.debug("Building SettingsPage");
     return Scaffold(
       appBar: PackerAppBar(
         actions: actions(context),

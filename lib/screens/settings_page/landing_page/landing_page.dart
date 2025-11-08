@@ -35,7 +35,7 @@ ListTile landingPage(BuildContext context) {
             .substring(1),
         dropdownMenuEntries: _dropdownMenuEntries(),
         onSelected: (value) {
-                            logger?.log("Settings: landing page changed to index $value");          settingsDatabase!.put(Constants().landingPageSettingsKey, value);
+                            logger?.debug("Settings: landing page changed to index $value");          settingsDatabase!.put(Constants().landingPageSettingsKey, value);
         },
       ),
     ),

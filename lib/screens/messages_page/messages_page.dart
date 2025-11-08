@@ -45,7 +45,7 @@ class MessagesPage extends StatefulWidget {
 
 class _MessagesPageState extends State<MessagesPage> {
   Future<String> _getPersonDisplayName(String? personEmail) async {
-    logger?.log(
+    logger?.debug(
         'MessagesPage: _getPersonDisplayName called for email: $personEmail');
     if (personEmail == null || personEmail.isEmpty) {
       return "Unknown";
@@ -57,27 +57,26 @@ class _MessagesPageState extends State<MessagesPage> {
       if (cachedPersonJson != null) {
         final cachedPerson =
             Person.fromJson(Map<String, dynamic>.from(cachedPersonJson));
-        logger?.log(
+        logger?.debug(
             'MessagesPage: Person found in cache: ${cachedPerson.displayName}');
         return cachedPerson.displayName ?? personEmail;
       }
     }
 
-    try {
-      final webexApis = context.read<WebexApis>();
-      final response = await webexApis.getPeople(email: personEmail);
-      logger?.log(
-          'MessagesPage: getPeople API response for $personEmail: $response');
-      if (response['items'] != null && (response['items'] as List).isNotEmpty) {
+          try {
+          final webexApis = context.read<WebexApis>();
+          final response = await webexApis.getPeople(email: personEmail);
+          logger?.debug(
+              'MessagesPage: getPeople API response for $personEmail: $response');      if (response['items'] != null && (response['items'] as List).isNotEmpty) {
         final person = Person.fromJson(response['items'][0]);
         // Store in Hive cache
         await personDatabase?.put(personEmail, person.toJson());
-        logger?.log(
+        logger?.debug(
             'MessagesPage: Person fetched from API and cached: ${person.displayName}');
         return person.displayName ?? personEmail;
       }
     } catch (e) {
-      logger?.log('Error fetching person details for $personEmail: $e');
+      logger?.error('Error fetching person details for $personEmail: $e');
     }
     return personEmail;
   }
@@ -93,7 +92,7 @@ class _MessagesPageState extends State<MessagesPage> {
     Constants().currentPageRoute =
         "${Constants().messagesPageRoute} ${widget.roomTitle}";
 
-    logger?.log(
+    logger?.debug(
         "Building room: ${widget.roomTitle} roomType: ${widget.roomType} roomId: ${widget.roomId}");
 
     return Builder(builder: (context) {
@@ -137,7 +136,7 @@ class _MessagesPageState extends State<MessagesPage> {
                   ),
                 );
               }
-              logger?.log('messages loaded: ${state.messages.length}');
+              logger?.debug('messages loaded: ${state.messages.length}');
 
               return PackerList<Message>.lazy(
                 separatorBuilder: (_, __) => const Divider(height: 1),

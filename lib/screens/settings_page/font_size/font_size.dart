@@ -28,7 +28,7 @@ ListTile changeFontSize(BuildContext context) {
         hintText: fontSize.toInt().toString(),
         dropdownMenuEntries: _dropdownMenuEntries(),
         onSelected: (value) {
-                          logger?.log("Settings: font size changed to $value");          fontSize = value;
+                          logger?.debug("Settings: font size changed to $value");          fontSize = value;
           settingsDatabase!.put('FontSize', value);
         },
       ),

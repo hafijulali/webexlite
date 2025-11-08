@@ -17,7 +17,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
       if (!event.forceRefresh) {
         // Debug print: Attempting to load messages from cache
-        logger?.log(
+        logger?.debug(
             'MessagesBloc: Attempting to load messages from cache for room ${event.roomId}...');
         try {
           final cachedItems = messagesDatabase?.get(event.roomId);

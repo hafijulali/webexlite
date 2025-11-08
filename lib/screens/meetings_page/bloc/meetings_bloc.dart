@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:webexapis/routes/meetings/model.dart';
 import 'package:webexapis/webexapis.dart';
 import 'package:webexlite/init.dart';
+import '../../../core/constants/constants.dart';
 
 import 'meetings_event.dart';
 import 'meetings_state.dart';
@@ -13,8 +14,9 @@ class MeetingsBloc extends Bloc<MeetingsEvent, MeetingsState> {
   Timer? _timer;
 
   MeetingsBloc({required this.webexApis}) : super(MeetingsInitial()) {
-    _timer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      logger?.log('MeetingsBloc: Cache expired, forcing refresh');
+    final cacheExpiryTime = settingsDatabase?.get(Constants().cacheExpiryTimeSettingsKey, defaultValue: 60) ?? 60;
+    _timer = Timer.periodic(Duration(minutes: cacheExpiryTime), (timer) {
+      logger?.debug('MeetingsBloc: Cache expired, forcing refresh');
       add(const LoadMeetings(forceRefresh: true));
     });
 

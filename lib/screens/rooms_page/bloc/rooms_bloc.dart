@@ -17,7 +17,7 @@ class RoomsBloc extends Bloc<RoomsEvent, RoomsState> {
 
       if (!event.forceRefresh) {
         // Debug print: Attempting to load rooms from cache
-        logger?.log('RoomsBloc: Attempting to load rooms from cache...');
+        logger?.debug('RoomsBloc: Attempting to load rooms from cache...');
         try {
           final cachedRoomsJson = roomsDatabase?.get('rooms');
           if (cachedRoomsJson != null) {

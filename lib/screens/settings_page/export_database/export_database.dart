@@ -22,7 +22,7 @@ ListTile exportDatabase(BuildContext context) {
 }
 
 Future<dynamic> _export(BuildContext context) async {
-        logger?.log('Settings: Exporting Database...');  try {
+        logger?.debug('Settings: Exporting Database...');  try {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
         checkStoragePermissions(context);
@@ -30,14 +30,14 @@ Future<dynamic> _export(BuildContext context) async {
       String? exportDirectory = await FilePicker.platform.getDirectoryPath();
       if (exportDirectory == null) {
         exportDirectory = (await getApplicationDocumentsDirectory()).path;
-        logger?.log('Settings: Using default export location $exportDirectory');
+        logger?.debug('Settings: Using default export location $exportDirectory');
       }
       final ZipFileEncoder encoder = ZipFileEncoder();
       encoder.zipDirectory(databaseDirectory!,
           filename:
               path.join(exportDirectory, '${Constants().appName}Export.zip'),
           onProgress: (percent) =>
-              logger?.log("Settings: database export progress: $percent%"));
+              logger?.debug("Settings: database export progress: $percent%"));
 
       if (!context.mounted) return;
       await showAlertDialog(
@@ -49,6 +49,6 @@ Future<dynamic> _export(BuildContext context) async {
       await showSnackbar('Export feature is not available on web yet');
     }
   } on Exception catch (e) {
-          logger?.log("Settings: database export failed, error: $e");    await showSnackbar('Database Export Failed !!!');
+          logger?.error("Settings: database export failed, error: $e");    await showSnackbar('Database Export Failed !!!');
   }
 }

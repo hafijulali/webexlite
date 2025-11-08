@@ -23,7 +23,7 @@ ListTile importDatabase(BuildContext context) {
 }
 
 Future<dynamic> _import(BuildContext context) async {
-        logger?.log("Settings: importing database");  try {
+        logger?.debug("Settings: importing database");  try {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
 
@@ -35,10 +35,10 @@ Future<dynamic> _import(BuildContext context) async {
         importFilePath =
             '${(await getApplicationDocumentsDirectory()).path}/${Constants().appName}Export.zip';
       if (result != null) {
-        logger?.log("Settings: selected files: ${result.files}");
+        logger?.debug("Settings: selected files: ${result.files}");
         final importFilePath = result.files.single.path;
         if (importFilePath != null) {
-          logger?.log("Settings: importing from: $importFilePath");
+          logger?.debug("Settings: importing from: $importFilePath");
           try {
             final file = File(importFilePath);
             final jsonString = await file.readAsString();
@@ -55,7 +55,7 @@ Future<dynamic> _import(BuildContext context) async {
               const SnackBar(content: Text('Database imported successfully')),
             );
           } catch (e) {
-            logger?.log("Settings: database import failed, error: $e");
+            logger?.error("Settings: database import failed, error: $e");
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Database import failed: $e')),
             );
@@ -64,7 +64,7 @@ Future<dynamic> _import(BuildContext context) async {
       }
       } else {
         importFilePath = result.files.single.path;
-        logger?.log("Settings: importing from: $importFilePath");
+        logger?.debug("Settings: importing from: $importFilePath");
       }
 
       final Uint8List databaseBundleZip =
@@ -103,7 +103,7 @@ Future<dynamic> _import(BuildContext context) async {
     }
   } on Exception catch (e) {
     if (!context.mounted) return null;
-          logger?.log("Settings: database import failed, error: $e");
+          logger?.error("Settings: database import failed, error: $e");
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(

@@ -707,10 +707,12 @@ packages:
   packer:
     dependency: "direct main"
     description:
-      path: "../packer"
-      relative: true
-    source: path
-    version: "0.1.15"
+      path: "."
+      ref: "v0.1.16"
+      resolved-ref: "87c3d53e2b90efc034ad09477a7fefa039582a29"
+      url: "https://gitlab.com/hafijulali/packer"
+    source: git
+    version: "0.1.16"
   path:
     dependency: "direct main"
     description:
@@ -1199,10 +1201,12 @@ packages:
   webexapis:
     dependency: "direct main"
     description:
-      path: "../webexapis"
-      relative: true
-    source: path
-    version: "0.0.4"
+      path: "."
+      ref: "v0.0.5"
+      resolved-ref: ac7fb65da0172e515f45f5b6cea742514ef7976c
+      url: "https://gitlab.com/hafijulali/webexapis"
+    source: git
+    version: "0.0.5"
   win32:
     dependency: transitive
     description:

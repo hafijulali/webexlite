@@ -17,6 +17,7 @@ import '../rooms_page/bloc/rooms_bloc.dart';
 import '../rooms_page/bloc/rooms_event.dart';
 import '../rooms_page/rooms_page.dart';
 import '../search_page/bloc/search_bloc.dart';
+import '../search_page/search_page.dart';
 import '../search_page/bloc/search_event.dart';
 
 class HomePage extends StatefulWidget {
@@ -40,7 +41,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     pageController = PageController(initialPage: currentPageIndex);
-    logger?.log("HomePage: initState");
+    logger?.debug("HomePage: initState");
     if (accessToken == null || accessToken!.isEmpty) {
       PackerSnackBar(content: Constants().apiKeyNotSet).show();
     } else {}
@@ -51,7 +52,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    logger?.log("HomePage: dispose");
+    logger?.debug("HomePage: dispose");
     pageController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -63,36 +64,36 @@ class _HomePageState extends State<HomePage> {
       currentPath = routes.keys.toList().elementAt(currentPageIndex);
       pageController.jumpToPage(currentPageIndex);
     });
-    logger?.log("HomePage: bottom nav tapped, index: $gotoIndex $currentPath");
+    logger?.debug("HomePage: bottom nav tapped, index: $gotoIndex $currentPath");
   }
 
   void _onRefresh(BuildContext refreshContext) {
-    logger?.log("HomePage: refreshing page $currentPageIndex");
+    logger?.debug("HomePage: refreshing page $currentPageIndex");
     switch (currentPageIndex) {
       case 0:
-        logger?.log("HomePage: refreshing rooms");
+        logger?.debug("HomePage: refreshing rooms");
         refreshContext
             .read<RoomsBloc>()
             .add(const LoadRooms(forceRefresh: true));
         break;
       case 1:
         // This is the placeholder messages page, nothing to refresh.
-        logger?.log("HomePage: skipping refresh for messages page");
+        logger?.debug("HomePage: skipping refresh for messages page");
         break;
       case 2:
-        logger?.log("HomePage: refreshing meetings");
+        logger?.debug("HomePage: refreshing meetings");
         refreshContext
             .read<MeetingsBloc>()
             .add(const LoadMeetings(forceRefresh: true));
         break;
     }
-    logger?.log("HomePage: refresh complete");
+    logger?.debug("HomePage: refresh complete");
   }
 
   @override
   Widget build(BuildContext context) {
-    logger?.log("Building HomePage");
-        logger?.log("HomePage: webexApis is null: ${context.read<WebexApis>()}");
+    logger?.debug("Building HomePage");
+        logger?.debug("HomePage: webexApis is null: ${context.read<WebexApis>()}");
 
     final tabs = [
       const RoomsPage(),
@@ -109,16 +110,27 @@ class _HomePageState extends State<HomePage> {
             onRefresh: () => _onRefresh(context),
             searchController: _searchController,
             onSearchEditingComplete: () {
-              logger?.log("HomePage: onSearchEditingComplete triggered");
-              // Handle search submission here
-              logger?.log("Search submitted: ${_searchController.text}");
+              logger?.debug("HomePage: onSearchEditingComplete triggered");
+              final query = _searchController.text;
+              if (query.isNotEmpty) {
+                context.read<SearchBloc>().add(PerformSearch(query));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (routeContext) => BlocProvider.value(
+                      value: routeContext.read<SearchBloc>(),
+                      child: const SearchPage(),
+                    ),
+                  ),
+                );
+              }
             },
           ),
           body: PageView(
             controller: pageController,
             children: tabs,
             onPageChanged: (value) {
-              logger?.log("HomePage: page changed to $value");
+              logger?.debug("HomePage: page changed to $value");
               setState(() {
                 currentPageIndex = value;
                 currentPath = routes.keys.toList().elementAt(currentPageIndex);

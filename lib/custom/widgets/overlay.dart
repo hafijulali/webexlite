@@ -201,6 +201,7 @@ class _SendMessagesOverlayState extends State<SendMessagesOverlay> {
       if (room != null) {
         setState(() {
           _roomDisplayName = room['displayName'];
+          logger?.log('');
         });
       }
     } catch (e) {
@@ -225,7 +226,7 @@ class _SendMessagesOverlayState extends State<SendMessagesOverlay> {
 
       PackerSnackBar(
         content:
-            'Message sent successfully to room ${_roomDisplayName ?? widget.roomId}',
+            'Message sent successfully to room ${_roomDisplayName ?? ''}',
       ).show();
       messageContentController.text = ''; // Clear field after sending
       _closeSendMessagesOverlay();
@@ -257,7 +258,7 @@ class _SendMessagesOverlayState extends State<SendMessagesOverlay> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Send Message to ${_roomDisplayName ?? widget.roomId}',
+                            'Send Message to ${_roomDisplayName ?? ''}',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 16),

@@ -44,7 +44,7 @@ class _SendMessagesPageState extends State<SendMessagesPage> {
         });
       }
     } catch (e) {
-      logger?.log('Error fetching room details: $e');
+      logger?.debug('Error fetching room details: $e');
       // Optionally show an error message to the user
     }
   }
@@ -65,18 +65,18 @@ class _SendMessagesPageState extends State<SendMessagesPage> {
       });
 
       PackerSnackBar(
-        content: 'Message sent successfully to room ${_roomDisplayName ?? widget.roomId}',
+        content: 'Message sent successfully to room ${_roomDisplayName ?? ''}',
       ).show();
       clearAllFields();
     } on Exception catch (e) {
-                                logger?.log(e.toString());      PackerSnackBar(content: 'Failed to send message').show();
+                                logger?.error(e.toString());      PackerSnackBar(content: 'Failed to send message').show();
     }
   }
 
   Widget addForm(BuildContext context) {
     return Scaffold(
       appBar: PackerAppBar(
-        center: const Text('Send Message'),
+        center: Text(_roomDisplayName ?? 'Send Message'),
         actions: [],
       ),
       body: Padding(

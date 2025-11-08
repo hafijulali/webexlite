@@ -15,9 +15,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       emit(SearchLoading());
       try {
         final response = await webexApis.search(query: event.query);
-        logger?.log('SearchBloc: API search response: $response');
+        logger?.debug('SearchBloc: API search response: $response');
         if (response['items'] != null) {
-          final results = (response['items'] as List<Map<String, dynamic>>).map((item) {
+          final results = (response['items'] as List<dynamic>?)
+              ?.whereType<Map<String, dynamic>>()
+              .map((item) {
             try {
               return SearchResult.fromJson(item);
             } catch (e, st) {
@@ -29,22 +31,22 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
               );
               return null;
             }
-          }).whereType<SearchResult>().toList();
-          logger?.log('SearchBloc: Mapped results count: ${results.length}');
+          }).whereType<SearchResult>().toList() ?? [];
+          logger?.debug('SearchBloc: Mapped results count: ${results.length}');
           // Save search query to history
           await searchDatabase?.put(event.query, true);
           final recentSearches =
               searchDatabase?.keys.cast<String>().toList() ?? [];
-          logger?.log(
+          logger?.debug(
               'SearchBloc: Emitting SearchLoaded with results and recent searches.');
           emit(SearchLoaded(results: results, recentSearches: recentSearches));
         } else {
-          logger?.log(
+          logger?.debug(
               'SearchBloc: API search response has no items. Emitting SearchError.');
           emit(SearchError(response['message'] ?? 'Failed to perform search.'));
         }
       } catch (e) {
-      logger?.log('SearchBloc: Error during API call: $e');
+      logger?.error('SearchBloc: Error during API call: $e');
         emit(SearchError(e.toString()));
       }
     });

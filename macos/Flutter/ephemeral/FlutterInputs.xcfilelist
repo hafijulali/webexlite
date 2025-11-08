@@ -80,6 +80,7 @@
 /Applications/DataCode/webex/lite/webexlite/lib/screens/search_page/bloc/search_bloc.dart
 /Applications/DataCode/webex/lite/webexlite/lib/screens/search_page/bloc/search_event.dart
 /Applications/DataCode/webex/lite/webexlite/lib/screens/search_page/bloc/search_state.dart
+/Applications/DataCode/webex/lite/webexlite/lib/screens/search_page/search_page.dart
 /Applications/DataCode/webex/lite/webexlite/lib/screens/settings_page/app_theme/app_theme.dart
 /Applications/DataCode/webex/lite/webexlite/lib/screens/settings_page/auth/auth.dart
 /Applications/DataCode/webex/lite/webexlite/lib/screens/settings_page/export_database/export_database.dart

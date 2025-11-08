@@ -24,7 +24,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController codeController = TextEditingController();
-  WebexApis webexApis = WebexApis(clientId: '', clientSecret: '');
+  late final WebexApis webexApis;
   final _appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
   PkcePair? _pkcePair;
@@ -39,11 +39,11 @@ class _LoginPageState extends State<LoginPage> {
 
     if (kIsWeb) {
       final uri = Uri.parse(html.window.location.href);
-      logger?.log("LoginPage (Web): initState - current URL: $uri");
+      logger?.debug("LoginPage (Web): initState - current URL: $uri");
       if (uri.queryParameters.containsKey('code')) {
         final code = uri.queryParameters['code'];
         codeController.text = code!;
-        logger?.log("LoginPage (Web): Code parameter found in URL: $code");
+        logger?.debug("LoginPage (Web): Code parameter found in URL: $code");
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _exchangeCodeForToken();
         });
@@ -68,26 +68,26 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleUri(Uri uri) {
-    logger?.log("LoginPage: _handleUri called with URI: $uri");
-    logger?.log("LoginPage: URI scheme: ${uri.scheme}");
-    logger?.log("LoginPage: URI host: ${uri.host}");
-    logger?.log("LoginPage: URI port: ${uri.port}");
-    logger?.log("LoginPage: URI path: ${uri.path}");
-    logger?.log("LoginPage: URI query: ${uri.query}");
-    logger?.log("LoginPage: URI query parameters: ${uri.queryParameters}");
+    logger?.debug("LoginPage: _handleUri called with URI: $uri");
+    logger?.debug("LoginPage: URI scheme: ${uri.scheme}");
+    logger?.debug("LoginPage: URI host: ${uri.host}");
+    logger?.debug("LoginPage: URI port: ${uri.port}");
+    logger?.debug("LoginPage: URI path: ${uri.path}");
+    logger?.debug("LoginPage: URI query: ${uri.query}");
+    logger?.debug("LoginPage: URI query parameters: ${uri.queryParameters}");
     if (uri.queryParameters.containsKey('code')) {
       final code = uri.queryParameters['code'];
       codeController.text = code!;
-      logger?.log("LoginPage: Code parameter found: $code");
+      logger?.debug("LoginPage: Code parameter found: $code");
       _exchangeCodeForToken();
     } else {
-      logger?.log("LoginPage: Code parameter NOT found in URI.");
+      logger?.debug("LoginPage: Code parameter NOT found in URI.");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    logger?.log("Building LoginPage");
+    logger?.debug("Building LoginPage");
     return Scaffold(
         appBar: PackerAppBar(
           center: const Text('Login'),
@@ -109,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _action(BuildContext context, String text) {
     return ElevatedButton(
         onPressed: () async {
-          logger?.log("LoginPage: action pressed - $text");
+          logger?.debug("LoginPage: action pressed - $text");
           await _launchAuthorizationUrl();
         },
         child: Text(text));
@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
     return ElevatedButton(
       child: const Text('SKIP'),
       onPressed: () async {
-        logger?.log("LoginPage: skip pressed");
+        logger?.debug("LoginPage: skip pressed");
         safePushNamed(context, Constants().homePageRoute);
       },
     );
@@ -179,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _launchAuthorizationUrl() async {
-    logger?.log("LoginPage: _launchAuthorizationUrl called");
+    logger?.debug("LoginPage: _launchAuthorizationUrl called");
     final scopes = [
       'spark:people_read',
       'spark:people_write',
@@ -208,35 +208,35 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _exchangeCodeForToken() async {
-    logger?.log("LoginPage: _exchangeCodeForToken called");
+    logger?.debug("LoginPage: _exchangeCodeForToken called");
     try {
       final codeVerifier = await settingsDatabase?.get('code_verifier');
-      logger?.log("codeVerifier from db: $codeVerifier");
+      logger?.debug("codeVerifier from db: $codeVerifier");
       final newToken = await webexApis.exchangeCodeForToken(
         code: codeController.text,
         redirectUri: OAuthConstants.getRedirectUri(),
         codeVerifier: codeVerifier,
       );
-      logger?.log("LoginPage: newToken received: $newToken");
+      logger?.debug("LoginPage: newToken received: $newToken");
 
       token = newToken;
       accessToken = newToken.accessToken;
       if (token != null) {
-        logger?.log(
+        logger?.debug(
             "LoginPage: Saving token with key: ${Constants().tokenSettingsKey}");
-        logger?.log("LoginPage: Token content to save: ${token!.toJson()}");
+        logger?.debug("LoginPage: Token content to save: ${token!.toJson()}");
         await settingsDatabase?.put(
             Constants().tokenSettingsKey, token!.toJson());
-        logger?.log(
+        logger?.debug(
             "LoginPage: Token saved to settingsDatabase. Key: ${Constants().tokenSettingsKey}, Value: ${token!.toJson()}");
       }
 
       if (!mounted) return;
-      logger?.log("LoginPage: Navigating to HomePage.");
+      logger?.debug("LoginPage: Navigating to HomePage.");
       safePushNamed(context, Constants().homePageRoute);
     } catch (e) {
       // Handle error
-      logger?.log('Error exchanging code for token: $e');
+      logger?.error('Error exchanging code for token: $e');
     }
   }
 }
