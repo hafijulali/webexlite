@@ -21,6 +21,7 @@ before_script:
   - flutter clean
   - flutter pub get
   - flutter pub upgrade
+  - echo "$ENV" > .env
 
 pages:
   stage: build
@@ -32,3 +33,4 @@ pages:
     when: on_success
     paths:
       - public
+

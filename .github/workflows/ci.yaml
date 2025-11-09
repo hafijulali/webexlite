@@ -9,6 +9,9 @@ jobs:
   setup:
     name: Setup Flutter
     runs-on: ubuntu-latest
+    outputs:
+      app_name: ${{ steps.get_app_info.outputs.app_name }}
+      app_version: ${{ steps.get_app_info.outputs.app_version }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -75,9 +78,10 @@ jobs:
         run: flutter build apk --release --obfuscate --split-per-abi --split-debug-info .debug
 
       - name: Rename and Upload Android Builds
+        env:
+          APP_NAME: ${{ needs.setup.outputs.app_name }}
+          APP_VERSION: ${{ needs.setup.outputs.app_version }}
         run: |
-          APP_NAME="${{ needs.setup.outputs.app_name }}"
-          APP_VERSION="${{ needs.setup.outputs.app_version }}"
           mkdir -p artifacts
           mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk artifacts/${APP_NAME}-${APP_VERSION}-android-arm64.apk
           mv build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk artifacts/${APP_NAME}-${APP_VERSION}-android-armeabi-v7a.apk
@@ -93,7 +97,7 @@ jobs:
     runs-on: macos-latest
     needs: setup
     outputs:
-      ipa_path: build/ios/ipa/*.ipa
+      app_path: artifacts/${{ needs.setup.outputs.app_name }}-${{ needs.setup.outputs.app_version }}-ios.app
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -140,12 +144,13 @@ jobs:
         run: flutter build ios --release --no-codesign
 
       - name: Rename and Upload iOS Build
+        env:
+          APP_NAME: ${{ needs.setup.outputs.app_name }}
+          APP_VERSION: ${{ needs.setup.outputs.app_version }}
         run: |
-          APP_NAME="${{ needs.setup.outputs.app_name }}"
-          APP_VERSION="${{ needs.setup.outputs.app_version }}"
           mkdir -p artifacts
           # Find the generated .app file and rename it
-          find build/ios/Runner.app -maxdepth 0 -exec mv {} artifacts/${APP_NAME}-${APP_VERSION}-ios.app \;
+          mv build/ios/iphoneos/Runner.app artifacts/${APP_NAME}-${APP_VERSION}-ios.app
       - name: Upload iOS Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -195,9 +200,10 @@ jobs:
         run: flutter build linux --release
 
       - name: Rename and Upload Linux Build
+        env:
+          APP_NAME: ${{ needs.setup.outputs.app_name }}
+          APP_VERSION: ${{ needs.setup.outputs.app_version }}
         run: |
-          APP_NAME="${{ needs.setup.outputs.app_name }}"
-          APP_VERSION="${{ needs.setup.outputs.app_version }}"
           mkdir -p artifacts
           mv build/linux/x64/release/bundle artifacts/${APP_NAME}-${APP_VERSION}-linux-x64
       - name: Upload Linux Artifacts
@@ -211,7 +217,7 @@ jobs:
     runs-on: macos-latest
     needs: setup
     outputs:
-      macos_path: build/macos/Build/Products/Release
+      app_path: artifacts/${{ needs.setup.outputs.app_name }}-${{ needs.setup.outputs.app_version }}-macos.app
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -244,11 +250,12 @@ jobs:
         run: flutter build macos --release
 
       - name: Rename and Upload macOS Build
+        env:
+          APP_NAME: ${{ needs.setup.outputs.app_name }}
+          APP_VERSION: ${{ needs.setup.outputs.app_version }}
         run: |
-          APP_NAME="${{ needs.setup.outputs.app_name }}"
-          APP_VERSION="${{ needs.setup.outputs.app_version }}"
           mkdir -p artifacts
-          mv build/macos/Build/Products/Release/${APP_NAME}.app artifacts/${APP_NAME}-${APP_VERSION}-macos.app
+          mv build/macos/Build/Products/Release/Runner.app artifacts/${APP_NAME}-${APP_VERSION}-macos.app
       - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -293,9 +300,10 @@ jobs:
         run: flutter build windows --release
 
       - name: Rename and Upload Windows Build
+        env:
+          APP_NAME: ${{ needs.setup.outputs.app_name }}
+          APP_VERSION: ${{ needs.setup.outputs.app_version }}
         run: |
-          APP_NAME="${{ needs.setup.outputs.app_name }}"
-          APP_VERSION="${{ needs.setup.outputs.app_version }}"
           mkdir -p artifacts
           mv build/windows/x64/runner/Release artifacts/${APP_NAME}-${APP_VERSION}-windows-x64
       - name: Upload Windows Artifacts
