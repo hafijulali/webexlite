@@ -8,6 +8,7 @@ import '../../core/constants/constants.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:dio/dio.dart';
 import 'dart:typed_data';
+import 'package:image/image.dart' as img; // Import the image package
 
 OverlayEntry? _overlayEntry;
 OverlayEntry? _sendMessagesOverlayEntry;
@@ -65,27 +66,69 @@ class _ImageOverlayContentState extends State<ImageOverlayContent> {
   }
 
   Future<Uint8List?> _getImageData(String url) async {
+    logger?.debug('Attempting to fetch image from: $url', source: 'OverlayWidget');
+    Uint8List? rawImageData; // This will hold either cached or newly fetched raw data
+
+    // 1. Try to get from cache first
     if (_imageBox.containsKey(url)) {
-      return _imageBox.get(url) as Uint8List?;
+      final cachedData = _imageBox.get(url) as Uint8List?;
+      if (cachedData != null) {
+        logger?.debug('Image found in cache for $url, size: ${cachedData.length} bytes', source: 'OverlayWidget');
+        rawImageData = cachedData;
+      } else {
+        logger?.debug('Image found in cache for $url but data is null', source: 'OverlayWidget');
+      }
     }
 
-    try {
-      final dio = Dio();
-      final response = await dio.get(
-        url,
-        options: Options(
-          headers: {"Authorization": "Bearer ${widget.accessToken}"},
-          responseType: ResponseType.bytes,
-        ),
-      );
-      if (response.statusCode == 200) {
-        final imageData = Uint8List.fromList(response.data);
-        await _imageBox.put(url, imageData);
-        return imageData;
+    // 2. If not in cache or cached data was null, fetch from network
+    if (rawImageData == null) {
+      try {
+        final dio = Dio();
+        final response = await dio.get(
+          url,
+          options: Options(
+            headers: {"Authorization": "Bearer ${widget.accessToken}"},
+            responseType: ResponseType.bytes,
+          ),
+        );
+        if (response.statusCode == 200) {
+          logger?.debug('Content-Type header: ${response.headers['content-type']?.first}', source: 'OverlayWidget');
+          rawImageData = Uint8List.fromList(response.data);
+          logger?.debug('Successfully fetched image from $url, original size: ${rawImageData.length} bytes', source: 'OverlayWidget');
+        }
+      } catch (e) {
+        if (e is DioException) {
+          logger?.error(
+              'Error fetching image from $url: ${e.message}, Status: ${e.response?.statusCode}, Data: ${e.response?.data}',
+              source: 'OverlayWidget');
+        } else {
+          logger?.error('Error fetching image from $url: $e', source: 'OverlayWidget');
+        }
       }
-    } catch (e) {
-      logger?.error('Error fetching image from $url: $e', source: 'OverlayWidget');
     }
+
+    // 3. Process (decode, resize, re-encode) the raw image data
+    if (rawImageData != null) {
+      img.Image? image = img.decodeImage(rawImageData);
+      if (image != null) {
+        logger?.debug('Image decoded successfully. Original dimensions: ${image.width}x${image.height}', source: 'OverlayWidget');
+        // Resize image to a max width of 1000, maintaining aspect ratio
+        img.Image resizedImage = img.copyResize(image, width: 1000);
+        Uint8List resizedImageData = Uint8List.fromList(img.encodePng(resizedImage));
+        
+        // Store the *resized* image data in cache
+        await _imageBox.put(url, resizedImageData);
+        logger?.debug('Resized and cached image from $url, new dimensions: ${resizedImage.width}x${resizedImage.height}, new size: ${resizedImageData.length} bytes', source: 'OverlayWidget');
+        return resizedImageData;
+      } else {
+        logger?.error('Could not decode image from $url. Raw data size: ${rawImageData.length} bytes', source: 'OverlayWidget');
+        // If decoding fails, remove from cache to prevent repeated failures
+        await _imageBox.delete(url);
+        logger?.debug('Removed undecodable image from cache: $url', source: 'OverlayWidget');
+        return null;
+      }
+    }
+    logger?.debug('Failed to fetch or process image from $url', source: 'OverlayWidget');
     return null;
   }
 
