@@ -47,11 +47,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          cache: true
-
       - name: Ensure secrets
         shell: bash
         env:
@@ -70,6 +65,11 @@ jobs:
           cat << EOF > .env
           ${{ secrets.ENV }}
           EOF
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          cache: true
 
       - name: Build APK
         run: flutter build apk --release --obfuscate --split-per-abi --split-debug-info .debug
@@ -97,6 +97,25 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Ensure secrets
+        shell: bash
+        env:
+          KEY: ${{ secrets.KEY }}
+          PROP: ${{ secrets.PROP }}
+          ENV: ${{ secrets.ENV }}
+        run: |
+          cat << EOF > android/key.properties
+          ${{ secrets.PROP }}
+          EOF
+
+          cat << EOF | base64 -d > android/android-prod.keystore
+          ${{ secrets.KEY }}
+          EOF
+
+          cat << EOF > .env
+          ${{ secrets.ENV }}
+          EOF
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -143,6 +162,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Ensure secrets
+        shell: bash
+        env:
+          KEY: ${{ secrets.KEY }}
+          PROP: ${{ secrets.PROP }}
+          ENV: ${{ secrets.ENV }}
+        run: |
+          cat << EOF > android/key.properties
+          ${{ secrets.PROP }}
+          EOF
+
+          cat << EOF | base64 -d > android/android-prod.keystore
+          ${{ secrets.KEY }}
+          EOF
+
+          cat << EOF > .env
+          ${{ secrets.ENV }}
+          EOF
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -178,6 +216,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Ensure secrets
+        shell: bash
+        env:
+          KEY: ${{ secrets.KEY }}
+          PROP: ${{ secrets.PROP }}
+          ENV: ${{ secrets.ENV }}
+        run: |
+          cat << EOF > android/key.properties
+          ${{ secrets.PROP }}
+          EOF
+
+          cat << EOF | base64 -d > android/android-prod.keystore
+          ${{ secrets.KEY }}
+          EOF
+
+          cat << EOF > .env
+          ${{ secrets.ENV }}
+          EOF
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -207,6 +264,25 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Ensure secrets
+        shell: bash
+        env:
+          KEY: ${{ secrets.KEY }}
+          PROP: ${{ secrets.PROP }}
+          ENV: ${{ secrets.ENV }}
+        run: |
+          cat << EOF > android/key.properties
+          ${{ secrets.PROP }}
+          EOF
+
+          cat << EOF | base64 -d > android/android-prod.keystore
+          ${{ secrets.KEY }}
+          EOF
+
+          cat << EOF > .env
+          ${{ secrets.ENV }}
+          EOF
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -247,4 +323,5 @@ jobs:
         with:
           files: artifacts/**/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
