@@ -150,7 +150,7 @@ jobs:
         run: |
           mkdir -p artifacts
           # Find the generated .app file and rename it
-          mv build/ios/iphoneos/Runner.app artifacts/${APP_NAME}-${APP_VERSION}-ios.app
+          find build/ios/iphoneos -name "*.app" -maxdepth 1 -exec mv {} artifacts/${APP_NAME}-${APP_VERSION}-ios.app \;
       - name: Upload iOS Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -255,7 +255,7 @@ jobs:
           APP_VERSION: ${{ needs.setup.outputs.app_version }}
         run: |
           mkdir -p artifacts
-          mv build/macos/Build/Products/Release/Runner.app artifacts/${APP_NAME}-${APP_VERSION}-macos.app
+          find build/macos/Build/Products/Release -name "*.app" -maxdepth 1 -exec mv {} artifacts/${APP_NAME}-${APP_VERSION}-macos.app \;
       - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
         with:
