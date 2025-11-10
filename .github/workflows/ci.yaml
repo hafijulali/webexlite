@@ -329,7 +329,6 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          files: artifacts/**/${{ needs.setup.outputs.app_name }}*
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-

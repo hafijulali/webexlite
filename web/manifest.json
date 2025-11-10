@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#fffff",
-    "description": "A new Flutter project.",
+    "description": "Reimplimentation of webex app in flutter, designed for performance",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
